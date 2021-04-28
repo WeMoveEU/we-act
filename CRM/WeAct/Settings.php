@@ -39,11 +39,11 @@ class CRM_WeAct_Settings {
 
   //TODO is this used?
   public function fetchEmailGreetingIds() {
-    //TODO cache
+    $filter = ['greeting_type' => 'email_greeting'];
+    $emailGreetings = CRM_Core_PseudoConstant::greeting($filter, 'description');
     $re = '/^([a-z]{2,3}_[A-Z]{2})\:(.{0,1})/';
     $emailGreetingIds = [];
-    CRM_Core_OptionGroup::getAssoc('email_greeting', $group, FALSE, 'name');
-    foreach ($group['description'] as $id => $description) {
+    foreach ($emailGreetings as $id => $description) {
       if (preg_match($re, $description, $matches)) {
         $emailGreetingIds[$matches[1]][$matches[2]] = $id;
       }
