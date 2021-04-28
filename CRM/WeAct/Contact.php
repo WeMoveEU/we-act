@@ -43,7 +43,7 @@ class CRM_WeAct_Contact {
         'location_type_id' => 1,
         'postcal_code' => $this->postcode,
         'country_id' => $this->settings->countryIds[$this->country],
-      ];
+      ]
     ];
     $create_result = civicrm_api3('Contact', 'create', $params);
     $contact = $create_result['values'][0];

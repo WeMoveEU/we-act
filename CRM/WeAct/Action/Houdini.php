@@ -21,6 +21,6 @@ class CRM_WeAct_Action_Houdini extends CRM_WeAct_Action {
         return $countryLangMapping[$country];
       }
     }
+    return 'en_GB';
   }
-  return 'en_GB';
 }

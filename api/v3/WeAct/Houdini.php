@@ -1,6 +1,6 @@
 <?php
 
-require_once 'common.php'
+require_once 'common.php';
 
 /**
  * WeAct.Houdini API specification (optional)
@@ -24,5 +24,5 @@ function _civicrm_api3_we_act_Houdini_spec(&$spec) {
  * Return API result as expected by Rabbitizen
  */
 function civicrm_api3_we_act_Houdini($params) {
-  return _we_act_process_message(CRM_WeAct_Action_Houdini, $params['message']);
+  return _we_act_process_message('CRM_WeAct_Action_Houdini', $params['message']);
 }

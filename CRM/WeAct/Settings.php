@@ -3,7 +3,7 @@
 class CRM_WeAct_Settings {
   private static $instance = NULL;
 
-  private function __constructor() {
+  private function __construct() {
     $this->anonymousId = Civi::settings()->get('anonymous_id');
     $this->campaignLanguageField = Civi::settings()->get('field_language');
     $this->membersGroupId = Civi::settings()->get('group_id');
@@ -14,10 +14,10 @@ class CRM_WeAct_Settings {
   }
 
   public static function instance() {
-    if (!$self::instance) {
-      $self::instance = new $self();
+    if (self::$instance == NULL) {
+      self::$instance = new CRM_WeAct_Settings();
     }
-    return $self::instance;
+    return self::$instance;
   }
 
   public function fetchCountryIds() {
