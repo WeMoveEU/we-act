@@ -51,7 +51,7 @@ class CRM_WeAct_Settings {
     return $emailGreetingIds;
   }
 
-  public function getEmailGreetingId($locale, $genderShortcut, $emailGreetingIds) {
+  public function getEmailGreetingId($locale) {
     if (array_key_exists($locale, $this->emailGreetingIds)) {
       return $this->emailGreetingIds[$locale][''];
     }

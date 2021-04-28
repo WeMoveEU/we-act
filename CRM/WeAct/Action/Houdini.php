@@ -8,9 +8,19 @@ class CRM_WeAct_Action_Houdini extends CRM_WeAct_Action {
     $this->actionPageId = $json_msg->external_id;
     $this->actionPageName = $json_msg->action_name;
     $this->language = $this->determineLanguage($json_msg->action_name);
-
-    $this->contact = new CRM_WeAct_Contact($json_msg->contact);
+    $this->contact = $this->buildContact($json_msg->contact);
   }
+
+  protected function buildContact($json_contact) {
+    $contact = new CRM_WeAct_Contact();
+    $contact->firstname = trim($json_contact->firstname);
+    $contact->lastname = trim($json_contact->lastname);
+    $contact->email = trim($json_contact->emails[0]->email);
+    $contact->postcode = trim($json_contact->addresses[0]->zip);
+    $contact->country = strtoupper($json_contact->addresses[0]->country);
+    return $contact;
+  }
+
 
   protected function determineLanguage($campaignName) {
     $re = "/(.*)[_\\- ]([a-zA-Z]{2})$/";

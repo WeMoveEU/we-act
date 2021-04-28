@@ -2,13 +2,14 @@
 
 class CRM_WeAct_Contact {
 
-  public function __constructor($json_contact) {
+  public $firstname;
+  public $lastname;
+  public $email;
+  public $postcode;
+  public $country;
+
+  public function __construct() {
     $this->settings = CRM_WeAct_Settings::instance();
-    $this->firstname = trim($json_contact->firstname);
-    $this->lastname = trim($json_contact->lastname);
-    $this->email = trim($json_contact->emails[0]->email);
-    $this->postcode = trim($json_contact->addresses[0]->zip);
-    $this->country = strtoupper($json_contact->addresses[0]->country);
   }
 
   public function isAnonymous() {
@@ -34,18 +35,21 @@ class CRM_WeAct_Contact {
 
   public function create($language, $source) {
     $create_params = [
+      'sequential' => 1,
+      'contact_type' => 'Individual',
       'first_name' => $this->firstname,
       'last_name' => $this->lastname,
-      'email_greeting_id' => $this->settings->getEmailGreeting($language),
+      'email' => $this->email,
+      'email_greeting_id' => $this->settings->getEmailGreetingId($language),
       'preferred_language' => $language,
       'source' => $source,
       'api.Address.create' => [
         'location_type_id' => 1,
-        'postcal_code' => $this->postcode,
+        'postal_code' => $this->postcode,
         'country_id' => $this->settings->countryIds[$this->country],
       ]
     ];
-    $create_result = civicrm_api3('Contact', 'create', $params);
+    $create_result = civicrm_api3('Contact', 'create', $create_params);
     $contact = $create_result['values'][0];
     //Indicate to caller that the contact is not in the members group
     $contact['api.GroupContact.get']['count'] = 0;
@@ -81,7 +85,7 @@ class CRM_WeAct_Contact {
     $countryId = $this->settings->countryIds[$this->country];
     $has_address = FALSE;
     foreach ($contact['api.Address.get']['values'] as $addr) {
-      if ($addr['postcal_code'] == $this->postcode && $addr['country_id'] == $countryId) {
+      if ($addr['postal_code'] == $this->postcode && $addr['country_id'] == $countryId) {
         $has_address = TRUE;
         break;
       }
@@ -91,7 +95,7 @@ class CRM_WeAct_Contact {
         'sequential' => 1,
         'contact_id' => $contact['id'],
         'location_type_id' => 1,
-        'postcal_code' => $this->postcode,
+        'postal_code' => $this->postcode,
         'country_id' => $countryId,
       ]);
       $contact['api.Address.get']['values'][] = $addr_result['values'][0];
