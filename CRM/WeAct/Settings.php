@@ -11,6 +11,10 @@ class CRM_WeAct_Settings {
     $this->emailGreetingIds = $this->fetchEmailGreetingIds();
     //Mapping of country code => country id
     $this->countryIds = $this->fetchCountryIds();
+    $this->financialTypeId = 1; //FIXME
+    $this->paymentInstrumentId = 2; //FIXME
+    $this->paymentProcessorIds = $this->fetchPaymentProcessors();
+    $this->customFields = $this->fetchCustomFields();
   }
 
   public static function instance() {
@@ -37,6 +41,31 @@ class CRM_WeAct_Settings {
     return $countries;
   }
 
+  protected function fetchPaymentProcessors() {
+    return [
+      'houdini-stripe' => civicrm_api3('PaymentProcessor', 'getsingle', [
+        'return' => ["id"],
+        'name' => "CommitChange-card",
+        'is_test' => 0,
+      ])['id'],
+      'houdini-sepa' => civicrm_api3('PaymentProcessor', 'getsingle', [
+        'return' => ["id"],
+        'name' => "CommitChange-sepa",
+        'is_test' => 0,
+      ])['id'],
+    ];
+  }
+
+  protected function fetchCustomFields() {
+    return [
+      'recur_source' => CRM_Contributm_Model_UtmRecur::utmSource(),
+      'recur_medium' => CRM_Contributm_Model_UtmRecur::utmMedium(),
+      'recur_campaign' => CRM_Contributm_Model_UtmRecur::utmCampaign(),
+      'utm_source' => Civi::settings()->get('field_contribution_source'),
+      'utm_medium' => Civi::settings()->get('field_contribution_medium'),
+      'utm_campaign' => Civi::settings()->get('field_contribution_campaign'),
+    ];
+  }
   //TODO is this used?
   public function fetchEmailGreetingIds() {
     $filter = ['greeting_type' => 'email_greeting'];

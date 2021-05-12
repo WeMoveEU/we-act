@@ -22,9 +22,7 @@ use Civi\Test\TransactionalInterface;
 class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
 
   public function testHoudiniCampaignNew() {
-    $action = new CRM_WeAct_Action_Houdini(
-      CRM_WeAct_Action_HoudiniTest::singleStripeEvent()
-    );
+    $action = CRM_WeAct_Action_HoudiniTest::singleStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $campaign = $processor->getOrCreateCampaign($action);
     $this->assertGreaterThan(0, $campaign['id']);
@@ -38,9 +36,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
       'title' => 'existing',
       'external_identifier' => 'cc_42'
     ]);
-    $action = new CRM_WeAct_Action_Houdini(
-      CRM_WeAct_Action_HoudiniTest::singleStripeEvent()
-    );
+    $action = CRM_WeAct_Action_HoudiniTest::singleStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $campaign = $processor->getOrCreateCampaign($action);
     $this->assertEquals($campaign['id'], $campaign_result['id']);
@@ -49,13 +45,27 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
   }
 
   public function testHoudiniContactNew() {
-    $action = new CRM_WeAct_Action_Houdini(
-      CRM_WeAct_Action_HoudiniTest::singleStripeEvent()
-    );
+    $action = CRM_WeAct_Action_HoudiniTest::singleStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $contactId = $processor->getOrCreateContact($action, 66);
     $this->assertGreaterThan(0, $contactId);
     $this->assertConsentRequestSent();
+  }
+
+  public function testHoudiniStripeRecur() {
+    $contact_result = civicrm_api3('Contact', 'create', [
+      'contact_type' => 'Individual', 'first_name' => 'Transient', 'last_name' => 'Contact'
+    ]);
+    $campaign_result = civicrm_api3('Campaign', 'create', [
+      'campaign_type_id' => 1, 'title' => 'Transient campaign'
+    ]);
+    $action = CRM_WeAct_Action_HoudiniTest::recurringStripeAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $campaign_result['id'], $contact_result['id']);
+    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => 'cc_1']);
+    $this->assertEquals($get_recur['count'], 1);
+    $get_payment = civicrm_api3('Contribution', 'get', ['trxn_id' => 'ch_1NHwmdLnnERTfiJAMNHyFjAB']);
+    $this->assertEquals($get_payment['count'], 1);
   }
 
 }

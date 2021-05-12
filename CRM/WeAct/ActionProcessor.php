@@ -8,8 +8,9 @@ class CRM_WeAct_ActionProcessor {
 
   public function process(CRM_WeAct_Action $action) {
     $campaign = $this->getOrCreateCampaign($action);
-    $contact = $this->getOrCreateContact($action, $campaign['id']);
+    $contact_id = $this->getOrCreateContact($action, $campaign['id']);
     if ($action->actionType == 'donate') {
+      $this->processDonation($action, $campaign['id'], $contact_id);
     }
   }
 
@@ -73,6 +74,20 @@ class CRM_WeAct_ActionProcessor {
     }
 
     return $contact['id'];
+  }
+
+  public function processDonation($action, $campaign_id, $contact_id) {
+    $donation = $action->details;
+    $rcontrib_id = NULL;
+    if ($donation->isRecurring()) {
+      $rcontrib_id = $donation->findMatchingContribRecur();
+      if (!$rcontrib_id) {
+        $rcontrib_id = $donation->createContribRecur($campaign_id, $contact_id, $action->utm)['id'];
+      }
+    }
+    if (!$donation->findMatchingContrib()) {
+      $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm, $rcontrib_id);
+    }
   }
 
   public function externalIdentifier($system, $id) {

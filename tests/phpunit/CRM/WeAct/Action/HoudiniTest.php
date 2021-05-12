@@ -20,7 +20,7 @@ use Civi\Test\TransactionalInterface;
 class CRM_WeAct_Action_HoudiniTest extends CRM_WeAct_BaseTest {
 
   public function testDetermineLanguage() {
-    $action = new CRM_WeAct_Action_Houdini(self::singleStripeEvent());
+    $action = self::singleStripeAction();
     $this->assertEquals($action->language, 'pl_PL');
   }
 
@@ -63,7 +63,51 @@ class CRM_WeAct_Action_HoudiniTest extends CRM_WeAct_BaseTest {
 JSON;
   }
 
-  public static function singleStripeEvent() {
-    return json_decode(self::singleStripeJson());
+  public static function singleStripeAction() {
+    return new CRM_WeAct_Action_Houdini(json_decode(self::singleStripeJson()));
   }
+
+	private static function recurringStripeJson() {
+    return <<<JSON
+    {
+      "action_type":"donate",
+      "action_technical_type":"cc.wemove.eu:donate",
+      "create_dt":"2017-12-13T11:47:56.531Z",
+      "action_name":"campaign-PL",
+      "external_id":50002,
+      "contact":{
+        "firstname":"Test2",
+        "lastname":"Testowski2",
+        "emails":[{"email":"test+t2@example.com"}],
+        "addresses":[
+          {
+            "zip":"01-234",
+            "country":"pl"
+          }
+        ]
+      },
+      "donation":{
+        "amount":23,
+        "amount_charged":0,
+        "currency":"EUR",
+        "card_type":"Visa",
+        "payment_processor":"stripe",
+        "type":"recurring",
+        "recurring_id":"cc_1",
+        "transaction_id":"ch_1NHwmdLnnERTfiJAMNHyFjAB",
+        "customer_id":"cus_Bb94Wds2n3xCVB",
+        "status":"success"
+      },
+      "source":{
+        "source":"phpunit",
+        "medium":"phpstorm",
+        "campaign":"testing"
+      }
+    }
+JSON;
+  }
+
+	public static function recurringStripeAction() {
+		return new CRM_WeAct_Action_Houdini(json_decode(self::recurringStripeJson()));
+	}
 }

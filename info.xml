@@ -21,6 +21,7 @@
   </compatibility>
   <requires>
     <ext>eu.wemove.gidipirus</ext>
+    <ext>eu.wemove.contributm</ext>
   </requires>
   <classloader>
     <psr4 prefix="Civi\" path="Civi"/>

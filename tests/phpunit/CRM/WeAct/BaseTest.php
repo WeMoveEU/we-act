@@ -22,9 +22,6 @@ use Civi\Test\TransactionalInterface;
 abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   public function setUpHeadless() {
-    return \Civi\Test::headless()
-      ->installMe(__DIR__)
-      ->apply();
   }
 
   public function setUp() {
