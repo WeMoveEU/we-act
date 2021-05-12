@@ -18,7 +18,7 @@ class CRM_WeAct_ActionProcessor {
    * to which the given action is to be associated
    */
   public function getOrCreateCampaign(CRM_WeAct_Action $action) {
-    $key = "WeAct:ActionPage:extid:{$action->actionPageId}";
+    $key = "WeAct:ActionPage:{$action->externalSystem}:{$action->actionPageId}";
     $entry = Civi::cache()->get($key);
     if (!$entry) {
       $get_params = ['sequential' => 1, 'external_identifier' => $action->actionPageId];
@@ -65,9 +65,9 @@ class CRM_WeAct_ActionProcessor {
       $consentParams = [
         'contact_id' => $contact['id'],
         'campaign_id' => $campaign_id,
-        'utm_source' => $action->source['source'],
-        'utm_medium' => $action->source['medium'],
-        'utm_campaign' => $action->source['campaign'],
+        'utm_source' => $action->utm['source'],
+        'utm_medium' => $action->utm['medium'],
+        'utm_campaign' => $action->utm['campaign'],
       ];
       civicrm_api3('Gidipirus', 'send_consent_request', $consentParams);
     }

@@ -32,7 +32,7 @@ class CRM_WeAct_Settings {
       foreach ($result['values'] as $country) {
         $countries[$country['iso_code']] = $country['id'];
       }
-      Civi::cache()->set($key, $mapping);
+      Civi::cache()->set($key, $countries);
     }
     return $countries;
   }

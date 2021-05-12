@@ -19,6 +19,9 @@
   <compatibility>
     <ver>5.0</ver>
   </compatibility>
+  <requires>
+    <ext>eu.wemove.gidipirus</ext>
+  </requires>
   <classloader>
     <psr4 prefix="Civi\" path="Civi"/>
   </classloader>
