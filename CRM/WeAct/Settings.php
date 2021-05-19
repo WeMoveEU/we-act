@@ -57,15 +57,18 @@ class CRM_WeAct_Settings {
   }
 
   protected function fetchCustomFields() {
-    return [
-      'recur_source' => CRM_Contributm_Model_UtmRecur::utmSource(),
-      'recur_medium' => CRM_Contributm_Model_UtmRecur::utmMedium(),
-      'recur_campaign' => CRM_Contributm_Model_UtmRecur::utmCampaign(),
-      'utm_source' => Civi::settings()->get('field_contribution_source'),
-      'utm_medium' => Civi::settings()->get('field_contribution_medium'),
-      'utm_campaign' => Civi::settings()->get('field_contribution_campaign'),
-    ];
+    $custom_fields = [];
+    foreach (['', 'recur_'] as $group) {
+      foreach (['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'] as $field_name) {
+        $get_field = civicrm_api3('CustomField', 'get', [
+          'custom_group_id' => $group . 'utm',
+          'name' => $field_name,
+        ]);
+        $custom_fields[$group . $field_name] = 'custom_' . $get_field['id'];
+      }
+    }
   }
+
   //TODO is this used?
   public function fetchEmailGreetingIds() {
     $filter = ['greeting_type' => 'email_greeting'];

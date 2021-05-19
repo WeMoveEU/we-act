@@ -80,13 +80,12 @@ class CRM_WeAct_ActionProcessor {
     $donation = $action->details;
     $rcontrib_id = NULL;
     if ($donation->isRecurring()) {
-      $rcontrib_id = $donation->findMatchingContribRecur();
-      if (!$rcontrib_id) {
-        $rcontrib_id = $donation->createContribRecur($campaign_id, $contact_id, $action->utm)['id'];
+      if (!$donation->findMatchingContribRecur()) {
+        $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
       }
     }
-    if (!$donation->findMatchingContrib()) {
-      $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm, $rcontrib_id);
+    else if (!$donation->findMatchingContrib()) {
+      $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
     }
   }
 

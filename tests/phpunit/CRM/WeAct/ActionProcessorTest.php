@@ -21,6 +21,18 @@ use Civi\Test\TransactionalInterface;
  */
 class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
 
+  public function setUp() {
+    parent::setUp();
+    $contact_result = civicrm_api3('Contact', 'create', [
+      'contact_type' => 'Individual', 'first_name' => 'Transient', 'last_name' => 'Contact'
+    ]);
+    $this->contactId = $contact_result['id'];
+    $campaign_result = civicrm_api3('Campaign', 'create', [
+      'campaign_type_id' => 1, 'title' => 'Transient campaign'
+    ]);
+    $this->campaignId = $campaign_result['id'];
+  }
+
   public function testHoudiniCampaignNew() {
     $action = CRM_WeAct_Action_HoudiniTest::singleStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
@@ -53,19 +65,37 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
   }
 
   public function testHoudiniStripeRecur() {
-    $contact_result = civicrm_api3('Contact', 'create', [
-      'contact_type' => 'Individual', 'first_name' => 'Transient', 'last_name' => 'Contact'
-    ]);
-    $campaign_result = civicrm_api3('Campaign', 'create', [
-      'campaign_type_id' => 1, 'title' => 'Transient campaign'
-    ]);
     $action = CRM_WeAct_Action_HoudiniTest::recurringStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $campaign_result['id'], $contact_result['id']);
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
     $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => 'cc_1']);
     $this->assertEquals($get_recur['count'], 1);
     $get_payment = civicrm_api3('Contribution', 'get', ['trxn_id' => 'ch_1NHwmdLnnERTfiJAMNHyFjAB']);
     $this->assertEquals($get_payment['count'], 1);
+  }
+
+  public function testHoudiniSepaOneoff() {
+    $action = CRM_WeAct_Action_HoudiniTest::oneoffSepaAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $get_contrib = civicrm_api3('Contribution', 'get', ['trxn_id' => 'cc_100001', 'sequential' => 1]);
+    $this->assertEquals($get_contrib['count'], 1);
+    $get_mandate = civicrm_api3('SepaMandate', 'get', ['iban' => 'PL83101010230000261395100000']);
+    $this->assertEquals($get_mandate['count'], 1);
+  }
+
+  public function testHoudiniSepaRecur() {
+    $action = CRM_WeAct_Action_HoudiniTest::recurringSepaAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => 'ccr_100001', 'sequential' => 1]);
+    $this->assertEquals($get_recur['count'], 1);
+    $this->assertEquals($get_recur['values'][0]['cycle_day'], 21); //Created on 13th
+    $get_mandate = civicrm_api3('SepaMandate', 'get', ['iban' => 'PL83101010230000261395100000']);
+    $this->assertEquals($get_mandate['count'], 1);
   }
 
 }

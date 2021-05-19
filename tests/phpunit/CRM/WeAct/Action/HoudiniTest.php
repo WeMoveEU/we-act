@@ -110,4 +110,94 @@ JSON;
 	public static function recurringStripeAction() {
 		return new CRM_WeAct_Action_Houdini(json_decode(self::recurringStripeJson()));
 	}
+
+	public static function oneoffSepaAction() {
+		return new CRM_WeAct_Action_Houdini(json_decode(self::oneoffSepaJson()));
+	}
+
+  public static function oneoffSepaJson() {
+    return <<<JSON
+    {
+      "action_type":"donate",
+      "action_technical_type":"cc.wemove.eu:donate",
+      "create_dt":"2017-12-13T14:16:56Z",
+      "action_name":"campaign-PL",
+      "external_id":50002,
+      "contact":{
+        "firstname":"Test3",
+        "lastname":"Testowski3",
+        "emails":[{"email":"test+t3@example.com"}],
+        "addresses":[
+          {
+            "zip":"01-234",
+            "country":"pl"
+          }
+        ]
+      },
+      "donation":{
+        "amount":15,
+        "currency":"eur",
+        "type":"single",
+        "payment_processor":"sepa",
+        "amount_charged":0,
+        "transaction_id":"cc_100001",
+        "iban":"PL83101010230000261395100000",
+        "bic":"NOTPROVIDED",
+        "account_holder":"test",
+        "status":"success"
+      },
+      "source":{
+        "source":"phpunit",
+        "medium":"phpstorm",
+        "campaign":"testing"
+      }
+    }
+JSON;
+  }
+
+  public static function recurringSepaJson() {
+    return <<<JSON
+    {
+      "action_type":"donate",
+      "action_technical_type":"cc.wemove.eu:donate",
+      "create_dt":"2017-12-13T14:16:56Z",
+      "action_name":"campaign-PL",
+      "external_id":50002,
+      "contact":{
+        "firstname":"Test3",
+        "lastname":"Testowski3",
+        "emails":[{"email":"test+t3@example.com"}],
+        "addresses":[
+          {
+            "zip":"01-234",
+            "country":"pl"
+          }
+        ]
+      },
+      "donation":{
+        "amount":15,
+        "currency":"eur",
+        "type":"recurring",
+        "payment_processor":"sepa",
+        "amount_charged":0,
+        "recurring_id":"ccr_100001",
+        "transaction_id":"cc_100002",
+        "iban":"PL83101010230000261395100000",
+        "bic":"NOTPROVIDED",
+        "account_holder":"test",
+        "status":"success"
+      },
+      "source":{
+        "source":"phpunit",
+        "medium":"phpstorm",
+        "campaign":"testing"
+      }
+    }
+JSON;
+  }
+
+	public static function recurringSepaAction() {
+		return new CRM_WeAct_Action_Houdini(json_decode(self::recurringSepaJson()));
+	}
+
 }
