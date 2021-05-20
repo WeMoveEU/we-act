@@ -62,4 +62,6 @@ jobs:
         run: |
           php --version
           phpunit --version
+          ls -l
+          ls -l ./drupal
           head -20 drupal/includes/bootsrap.inc
