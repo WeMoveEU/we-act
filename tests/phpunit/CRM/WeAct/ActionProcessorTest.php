@@ -21,7 +21,7 @@ use Civi\Test\TransactionalInterface;
  */
 class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
 
-  public function setUp() {
+  public function setUp() : void {
     parent::setUp();
     $contact_result = civicrm_api3('Contact', 'create', [
       'contact_type' => 'Individual', 'first_name' => 'Transient', 'last_name' => 'Contact'

@@ -37,7 +37,7 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       ->apply();
   }
 
-  public function setUp() {
+  public function setUp() : void {
     parent::setUp();
     $consentRequests = [];
     $this->consentRequests = &$consentRequests;
