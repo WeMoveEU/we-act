@@ -30,7 +30,7 @@ jobs:
         with:
           file-url: https://github.com/drush-ops/drush/releases/download/8.4.5/drush.phar
           file-name: drush
-          path: ./bin/
+          location: ./bin/
       - run: chmod +x ./bin/drush
         
       - name: Download Drupal
