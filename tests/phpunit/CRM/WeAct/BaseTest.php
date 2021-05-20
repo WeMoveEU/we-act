@@ -37,7 +37,7 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       ->apply();
   }
 
-  public function setUp() {
+  public function setUp() : void {
     parent::setUp();
     $consentRequests = [];
     $this->consentRequests = &$consentRequests;
@@ -58,10 +58,6 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       'description' => "pl_PL:",
       'name' => "Dzień dobry",
     ]);
-  }
-
-  public function tearDown() {
-    parent::tearDown();
   }
 
   public function assertConsentRequestSent() {
