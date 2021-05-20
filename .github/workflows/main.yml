@@ -43,7 +43,7 @@ jobs:
         with:
           repository: WeMoveEU/wemove-civicrm
           ref: civicrm-5.35.1.patched
-          path: drupal/sites/all/modules
+          path: drupal/sites/all/modules/civicrm
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout extension
@@ -56,9 +56,6 @@ jobs:
           sudo systemctl start mysql.service
           mysql -u root -proot -e "CREATE DATABASE drupal;"
           cp drupal/sites/all/modules/civicrm/ext/we-act/.github/workflow-templates/civicrm.settings.php drupal/sites/default/
-
-      - name: Debug output
-        run: ls -l drupal/sites/all/modules/
 
       - name: Run unit tests
         run: phpunit
