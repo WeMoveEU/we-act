@@ -57,6 +57,9 @@ jobs:
           mysql -u root -proot -e "CREATE DATABASE drupal;"
           cp drupal/sites/all/modules/civicrm/ext/we-act/.github/workflow-templates/civicrm.settings.php drupal/sites/default/
 
+      - name: Debug output
+        run: ls -l drupal/sites/all/modules/
+
       - name: Run unit tests
         run: phpunit
         working-directory: drupal/sites/all/modules/civicrm/ext/we-act
