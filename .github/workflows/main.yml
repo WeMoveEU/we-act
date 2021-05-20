@@ -38,11 +38,19 @@ jobs:
         with:
           file-url: https://github.com/drush-ops/drush/releases/download/8.4.5/drush.phar
           file-name: drush
-          location: ./bin/
-      - run: chmod +x ./bin/drush
+          location: /usr/local/bin/
+      - run: sudo chmod +x /usr/local/bin/drush
+      
+      - name: Install cv
+        uses: carlosperate/download-file-action@v1.0.3
+        with:
+          file-url: https://download.civicrm.org/cv/cv.phar
+          file-name: cv
+          location: /usr/local/bin/
+      - run: sudo chmod +x /usr/local/bin/cv
 
       - name: Download Drupal
-        run: ./bin/drush dl drupal-7.80 --destination=./ --drupal-project-rename
+        run: drush dl drupal-7.80 --destination=./ --drupal-project-rename
 
       - name: Checkout CiviCRM
         uses: actions/checkout@v2
