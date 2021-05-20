@@ -37,7 +37,7 @@ jobs:
       - run: chmod +x ./bin/drush
         
       - name: Download Drupal
-        run: ./bin/drush dl drupal-7.80 --destination=. --drupal-project-rename
+        run: ./bin/drush dl drupal-7.80 --destination=./ --drupal-project-rename
 
       - name: Checkout CiviCRM
         uses: actions/checkout@v2
