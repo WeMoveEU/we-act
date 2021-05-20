@@ -51,11 +51,13 @@ jobs:
         with:
           path: drupal/sites/all/modules/civicrm/ext/we-act
 
-      - name: Install settings
+      - name: Install DB settings & schemas
         run: |
           sudo systemctl start mysql.service
           mysql -u root -proot -e "CREATE DATABASE drupal;"
           cp drupal/sites/all/modules/civicrm/ext/we-act/.github/workflow-templates/civicrm.settings.php drupal/sites/default/
+      - run: cv core:install
+        working-directory: drupal/sites/default
 
       - name: Run unit tests
         run: phpunit
