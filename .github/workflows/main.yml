@@ -55,10 +55,10 @@ jobs:
         run: |
           sudo systemctl start mysql.service
           mysql -u root -proot -e "CREATE DATABASE drupal;"
-          cp drupal/sites/all/modules/civicrm/ext/we-act/.github/workflow-templates/civicrm.settings.php drupal/sites/default/
-      - run: |
-          drush site-install --db-url=mysql://root:root@localhost/drupal
-          cv core:install -K --cms-base-url=http://localhost/
+          chmod u+w .
+          drush site-install -y --db-url=mysql://root:root@localhost/drupal
+          chmod u+w .
+          cv core:install --cms-base-url=http://localhost/
         working-directory: drupal/sites/default
 
       - name: Run unit tests
