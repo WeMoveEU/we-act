@@ -31,7 +31,7 @@ jobs:
       - name: Download Drupal
         uses: bluehorndigital/setup-drupal@v1.0.1
         with:
-          version: 7.80
+          version: '7.80'
      #   run: drush dl drupal-7.80 --destination=. --drupal-project-rename
 
       - name: Checkout CiviCRM
