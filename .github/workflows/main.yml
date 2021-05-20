@@ -38,15 +38,27 @@ jobs:
       - name: Download Drupal
         run: drush dl drupal-7.80 --destination=./ --drupal-project-rename
 
-      - name: Checkout CiviCRM
+      - name: Checkout CiviCRM & required extensions
         uses: actions/checkout@v2
         with:
           repository: WeMoveEU/wemove-civicrm
           ref: civicrm-5.35.1.patched
           path: drupal/sites/all/modules/civicrm
+      - uses: actions/checkout@v2
+        with:
+          repository: WeMoveEU/eu.wemove.gidipirus
+          path: drupal/sites/all/modules/civicrm/ext/gidipirus
+      - uses: actions/checkout@v2
+        with:
+          repository: WeMoveEU/contributm
+          path: drupal/sites/all/modules/civicrm/ext/contributm
+      - uses: actions/checkout@v2
+        with:
+          repository: WeMoveEU/org.project60.sepa
+          ref: 1.4.patched
+          path: drupal/sites/all/modules/civicrm/ext/sepa
 
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout extension
+      - name: Checkout this extension
         uses: actions/checkout@v2
         with:
           path: drupal/sites/all/modules/civicrm/ext/we-act
