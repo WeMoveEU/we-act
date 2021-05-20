@@ -25,11 +25,14 @@ jobs:
       - name: Start MySQL
         run: sudo systemctl start mysql.service
       
-      - name: Install Drush
-        run: sudo apt install drush
+     # - name: Install Drush
+     #   run: sudo apt install drush
         
       - name: Download Drupal
-        run: drush dl drupal-7.80 --destination=. --drupal-project-rename
+        uses: bluehorndigital/setup-drupal@v1.0.1
+        with:
+          version: 7.80
+     #   run: drush dl drupal-7.80 --destination=. --drupal-project-rename
 
       - name: Checkout CiviCRM
         uses: actions/checkout@v2
