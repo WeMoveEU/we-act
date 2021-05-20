@@ -60,10 +60,6 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     ]);
   }
 
-  public function tearDown() {
-    parent::tearDown();
-  }
-
   public function assertConsentRequestSent() {
     $this->assertGreaterThan(0, count($this->consentRequests));
   }
