@@ -27,14 +27,16 @@ jobs:
 
       - name: Checkout CiviCRM
         uses: actions/checkout@v2
-        repository: WeMoveEU/wemove-civicrm
-        ref: civicrm-5.35.1.patched
-        path: drupal/sites/all/modules
+        with:
+          repository: WeMoveEU/wemove-civicrm
+          ref: civicrm-5.35.1.patched
+          path: drupal/sites/all/modules
         
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout extension
         uses: actions/checkout@v2
-        path: drupal/sites/all/modules/civicrm/ext
+        with:
+          path: drupal/sites/all/modules/civicrm/ext
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
