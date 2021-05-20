@@ -2,7 +2,7 @@
 
 name: Run tests
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
@@ -24,9 +24,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Start MySQL
-        run: sudo systemctl start mysql.service
-
       - name: Set PHP version
         run: sudo ln -sf /usr/bin/php${php_version} /usr/bin/php
 
@@ -53,7 +50,13 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: drupal/sites/all/modules/civicrm/ext/we-act
-      
+
+      - name: Install settings
+        run: |
+          sudo systemctl start mysql.service
+          mysql -u root -proot -e "CREATE DATABASE drupal;"
+          cp drupal/sites/all/modules/civicrm/ext/we-act/.github/workflow-templates/civicrm.settings.php drupal/sites/default/
+
       - name: Run unit tests
         run: phpunit
         working-directory: drupal/sites/all/modules/civicrm/ext/we-act
