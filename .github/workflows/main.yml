@@ -30,24 +30,13 @@ jobs:
       - name: Set PHP version
         run: sudo ln -sf /usr/bin/php${php_version} /usr/bin/php
 
-      - name: Install dependencies
-        run: sudo apt install php${php_version}-bcmath php${php_version}-calendar php${php_version}-ctype php${php_version}-curl php${php_version}-dom php${php_version}-exif php${php_version}-fileinfo php${php_version}-ftp php${php_version}-gd php${php_version}-gettext php${php_version}-iconv php${php_version}-igbinary php${php_version}-imagick php${php_version}-intl php${php_version}-mbstring php${php_version}-mysqli php${php_version}-mysqlnd php${php_version}-opcache php${php_version}-pdo php${php_version}-phar php${php_version}-posix php${php_version}-readline php${php_version}-redis php${php_version}-shmop php${php_version}-simplexml php${php_version}-soap php${php_version}-sockets php${php_version}-sysvmsg php${php_version}-sysvsem php${php_version}-sysvshm php${php_version}-tokenizer  php${php_version}-xdebug php${php_version}-xml php${php_version}-xmlreader php${php_version}-xmlwriter php${php_version}-xsl php${php_version}-zip
-
-      - name: Install Drush
-        uses: carlosperate/download-file-action@v1.0.3
-        with:
-          file-url: https://github.com/drush-ops/drush/releases/download/8.4.5/drush.phar
-          file-name: drush
-          location: /usr/local/bin/
-      - run: sudo chmod +x /usr/local/bin/drush
-      
-      - name: Install cv
-        uses: carlosperate/download-file-action@v1.0.3
-        with:
-          file-url: https://download.civicrm.org/cv/cv.phar
-          file-name: cv
-          location: /usr/local/bin/
-      - run: sudo chmod +x /usr/local/bin/cv
+      - name: Install dependencies & tools
+        run: |
+          sudo apt install php${php_version}-bcmath php${php_version}-calendar php${php_version}-ctype php${php_version}-curl php${php_version}-dom php${php_version}-exif php${php_version}-fileinfo php${php_version}-ftp php${php_version}-gd php${php_version}-gettext php${php_version}-iconv php${php_version}-igbinary php${php_version}-imagick php${php_version}-intl php${php_version}-mbstring php${php_version}-mysqli php${php_version}-mysqlnd php${php_version}-opcache php${php_version}-pdo php${php_version}-phar php${php_version}-posix php${php_version}-readline php${php_version}-redis php${php_version}-shmop php${php_version}-simplexml php${php_version}-soap php${php_version}-sockets php${php_version}-sysvmsg php${php_version}-sysvsem php${php_version}-sysvshm php${php_version}-tokenizer  php${php_version}-xdebug php${php_version}-xml php${php_version}-xmlreader php${php_version}-xmlwriter php${php_version}-xsl php${php_version}-zip
+          sudo curl -LsS https://github.com/drush-ops/drush/releases/download/8.4.5/drush.phar -o /usr/local/bin/drush
+          sudo chmod +x /usr/local/bin/drush
+          sudo curl -LsS https://download.civicrm.org/cv/cv.phar -o /usr/local/bin/cv
+          sudo chmod +x /usr/local/bin/cv
 
       - name: Download Drupal
         run: drush dl drupal-7.80 --destination=./ --drupal-project-rename
