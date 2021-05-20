@@ -55,13 +55,9 @@ jobs:
       - name: Checkout extension
         uses: actions/checkout@v2
         with:
-          path: drupal/sites/all/modules/civicrm/ext
+          path: drupal/sites/all/modules/civicrm/ext/we-act
+      
+      - name: Run unit tests
+        run: phpunit
+        working-directory: drupal/sites/all/modules/civicrm/ext/we-act
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          php --version
-          phpunit --version
-          ls -l
-          ls -l ./drupal
-          head -20 drupal/includes/bootsrap.inc
