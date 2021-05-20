@@ -26,7 +26,7 @@ jobs:
         run: sudo systemctl start mysql.service
       
       - name: Install dependencies
-        run: sudo apt install php-bcmath php-calendar php-ctype php-curl php-dom php-exif php-fileinfo php-ftp php-gd php-gettext php-iconv php-igbinary php-imagick php-intl php-json php-mbstring php-mysqli php-mysqlnd php-opcache php-pdo php-phar php-posix php-readline php-redis php-shmop php-simplexml php-soap php-sockets php-sysvmsg php-sysvsem php-sysvshm php-tokenizer php-wddx php-xdebug php-xml php-xmlreader php-xmlwriter php-xsl php-zip
+        run: sudo apt install php8.0-bcmath php8.0-calendar php8.0-ctype php8.0-curl php8.0-dom php8.0-exif php8.0-fileinfo php8.0-ftp php8.0-gd php8.0-gettext php8.0-iconv php8.0-igbinary php8.0-imagick php8.0-intl php8.0-json php8.0-mbstring php8.0-mysqli php8.0-mysqlnd php8.0-opcache php8.0-pdo php8.0-phar php8.0-posix php8.0-readline php8.0-redis php8.0-shmop php8.0-simplexml php8.0-soap php8.0-sockets php8.0-sysvmsg php8.0-sysvsem php8.0-sysvshm php8.0-tokenizer php8.0-wddx php8.0-xdebug php8.0-xml php8.0-xmlreader php8.0-xmlwriter php8.0-xsl php8.0-zip
       
       - name: Install Drush
         uses: carlosperate/download-file-action@v1.0.3
