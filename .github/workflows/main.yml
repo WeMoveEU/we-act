@@ -25,8 +25,11 @@ jobs:
       - name: Start MySQL
         run: sudo systemctl start mysql.service
       
+      - name: Install dependencies
+        run: sudo apt install php-bcmath php-calendar php-ctype php-curl php-dom php-exif php-fileinfo php-ftp php-gd php-gettext php-iconv php-igbinary php-imagick php-intl php-json php-mbstring php-mysqli php-mysqlnd php-opcache php-pdo php-phar php-posix php-readline php-redis php-shmop php-simplexml php-soap php-sockets php-sysvmsg php-sysvsem php-sysvshm php-tokenizer php-wddx php-xdebug php-xml php-xmlreader php-xmlwriter php-xsl php-zip
+      
       - name: Install Drush
-        uses: carlosperate/download-file-action@v1.0.3
+      - uses: carlosperate/download-file-action@v1.0.3
         with:
           file-url: https://github.com/drush-ops/drush/releases/download/8.4.5/drush.phar
           file-name: drush
