@@ -19,15 +19,20 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-18.04
+    env:
+      php_version: '7.3'
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Start MySQL
         run: sudo systemctl start mysql.service
-      
+
+      - name: Set PHP version
+        run: sudo ln -sf /usr/bin/php${php_version} /usr/bin/php
+
       - name: Install dependencies
-        run: sudo apt install php8.0-bcmath php8.0-calendar php8.0-ctype php8.0-curl php8.0-dom php8.0-exif php8.0-fileinfo php8.0-ftp php8.0-gd php8.0-gettext php8.0-iconv php8.0-igbinary php8.0-imagick php8.0-intl php8.0-mbstring php8.0-mysqli php8.0-mysqlnd php8.0-opcache php8.0-pdo php8.0-phar php8.0-posix php8.0-readline php8.0-redis php8.0-shmop php8.0-simplexml php8.0-soap php8.0-sockets php8.0-sysvmsg php8.0-sysvsem php8.0-sysvshm php8.0-tokenizer php8.0-xdebug php8.0-xml php8.0-xmlreader php8.0-xmlwriter php8.0-xsl php8.0-zip
-      
+        run: sudo apt install php${php_version}-bcmath php${php_version}-calendar php${php_version}-ctype php${php_version}-curl php${php_version}-dom php${php_version}-exif php${php_version}-fileinfo php${php_version}-ftp php${php_version}-gd php${php_version}-gettext php${php_version}-iconv php${php_version}-igbinary php${php_version}-imagick php${php_version}-intl php${php_version}-mbstring php${php_version}-mysqli php${php_version}-mysqlnd php${php_version}-opcache php${php_version}-pdo php${php_version}-phar php${php_version}-posix php${php_version}-readline php${php_version}-redis php${php_version}-shmop php${php_version}-simplexml php${php_version}-soap php${php_version}-sockets php${php_version}-sysvmsg php${php_version}-sysvsem php${php_version}-sysvshm php${php_version}-tokenizer  php${php_version}-xdebug php${php_version}-xml php${php_version}-xmlreader php${php_version}-xmlwriter php${php_version}-xsl php${php_version}-zip
+
       - name: Install Drush
         uses: carlosperate/download-file-action@v1.0.3
         with:
@@ -35,7 +40,7 @@ jobs:
           file-name: drush
           location: ./bin/
       - run: chmod +x ./bin/drush
-        
+
       - name: Download Drupal
         run: ./bin/drush dl drupal-7.80 --destination=./ --drupal-project-rename
 
@@ -45,7 +50,7 @@ jobs:
           repository: WeMoveEU/wemove-civicrm
           ref: civicrm-5.35.1.patched
           path: drupal/sites/all/modules
-        
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout extension
         uses: actions/checkout@v2
