@@ -34,7 +34,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
   }
 
   public function testHoudiniCampaignNew() {
-    $action = CRM_WeAct_Action_HoudiniTest::singleStripeAction();
+    $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $campaign = $processor->getOrCreateCampaign($action);
     $this->assertGreaterThan(0, $campaign['id']);
@@ -48,7 +48,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
       'title' => 'existing',
       'external_identifier' => 'cc_42'
     ]);
-    $action = CRM_WeAct_Action_HoudiniTest::singleStripeAction();
+    $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $campaign = $processor->getOrCreateCampaign($action);
     $this->assertEquals($campaign['id'], $campaign_result['id']);
@@ -57,11 +57,20 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
   }
 
   public function testHoudiniContactNew() {
-    $action = CRM_WeAct_Action_HoudiniTest::singleStripeAction();
+    $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $contactId = $processor->getOrCreateContact($action, 66);
     $this->assertGreaterThan(0, $contactId);
     $this->assertConsentRequestSent();
+  }
+
+  public function testProcaStripeOneoff() {
+    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $get_payment = civicrm_api3('Contribution', 'get', ['trxn_id' => 'pi_somegarbage']);
+    $this->assertEquals($get_payment['count'], 1);
   }
 
   public function testHoudiniStripeRecur() {

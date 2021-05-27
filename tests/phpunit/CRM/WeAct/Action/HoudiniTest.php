@@ -20,11 +20,11 @@ use Civi\Test\TransactionalInterface;
 class CRM_WeAct_Action_HoudiniTest extends CRM_WeAct_BaseTest {
 
   public function testDetermineLanguage() {
-    $action = self::singleStripeAction();
+    $action = self::oneoffStripeAction();
     $this->assertEquals($action->language, 'pl_PL');
   }
 
-  protected static function singleStripeJson() {
+  protected static function oneoffStripeJson() {
     return <<<JSON
     {
       "action_type":"donate",
@@ -63,8 +63,8 @@ class CRM_WeAct_Action_HoudiniTest extends CRM_WeAct_BaseTest {
 JSON;
   }
 
-  public static function singleStripeAction() {
-    return new CRM_WeAct_Action_Houdini(json_decode(self::singleStripeJson()));
+  public static function oneoffStripeAction() {
+    return new CRM_WeAct_Action_Houdini(json_decode(self::oneoffStripeJson()));
   }
 
 	private static function recurringStripeJson() {

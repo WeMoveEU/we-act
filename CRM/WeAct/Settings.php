@@ -53,6 +53,11 @@ class CRM_WeAct_Settings {
         'name' => "CommitChange-sepa",
         'is_test' => 0,
       ])['id'],
+      'proca-card' => civicrm_api3('PaymentProcessor', 'getsingle', [
+        'return' => ["id"],
+        'name' => "Proca-card",
+        'is_test' => 0,
+      ])['id'],
     ];
   }
 
