@@ -90,7 +90,12 @@ class CRM_WeAct_ActionProcessor {
   }
 
   public function externalIdentifier($system, $id) {
-    return $id;
+    if ($system == 'houdini') {
+      $external_id = $id;
+    } else {
+      $external_id = "{$system}_$id";
+    }
+    return $external_id;
   }
 
   public function campaignType($actionType) {
