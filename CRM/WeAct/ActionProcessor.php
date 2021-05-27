@@ -22,7 +22,8 @@ class CRM_WeAct_ActionProcessor {
     $key = "WeAct:ActionPage:{$action->externalSystem}:{$action->actionPageId}";
     $entry = Civi::cache()->get($key);
     if (!$entry) {
-      $get_params = ['sequential' => 1, 'external_identifier' => $action->actionPageId];
+      $external_id = $this->externalIdentifier($action->externalSystem, $action->actionPageId);
+      $get_params = ['sequential' => 1, 'external_identifier' => $external_id];
       $get_result = civicrm_api3('Campaign', 'get', $get_params);
       if ($get_result['count'] == 1) {
         $entry = $get_result['values'][0];
@@ -33,10 +34,10 @@ class CRM_WeAct_ActionProcessor {
           'name' => $action->actionPageName,
           'title' => $action->actionPageName,
           'description' => $action->actionPageName,
-          'external_identifier' => $this->externalIdentifier($action->externalSystem, $action->actionPageId),
+          'external_identifier' => $external_id,
           'campaign_type_id' => $this->campaignType($action->actionType),
           'start_date' => date('Y-m-d H:i:s'),
-          $this->settings->campaignLanguageField => $action->language,
+          $this->settings->customFields['campaign_language'] => $action->language,
         ]);
         $entry = $create_result['values'][0];
       }
@@ -90,7 +91,12 @@ class CRM_WeAct_ActionProcessor {
   }
 
   public function externalIdentifier($system, $id) {
-    return $id;
+    if ($system == 'houdini') {
+      $external_id = $id;
+    } else {
+      $external_id = "{$system}_$id";
+    }
+    return $external_id;
   }
 
   public function campaignType($actionType) {

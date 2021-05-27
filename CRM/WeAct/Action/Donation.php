@@ -110,12 +110,15 @@ class CRM_WeAct_Action_Donation {
         'subject' => $action_page,
         'source' => $action_page,
         'location' => $location,
-        $this->settings->customFields['utm_source'] => $utm['source'],
-        $this->settings->customFields['utm_medium'] => $utm['medium'],
-        $this->settings->customFields['utm_campaign'] => $utm['campaign'],
       ];
       if ($recurring_id) {
         $params['contribution_recur_id'] = $recurring_id;
+        //The utm params will be set by a hook in contributm extension, let's not mess with it
+      }
+      else {
+        $params[$this->settings->customFields['utm_source']] = $utm['source'];
+        $params[$this->settings->customFields['utm_medium']] = $utm['medium'];
+        $params[$this->settings->customFields['utm_campaign']] = $utm['campaign'];
       }
       civicrm_api3('Contribution', 'create', $params);
     }

@@ -29,6 +29,7 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       ->callback(function($ctx) {
         civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-card', 'payment_processor_type_id' => 'Dummy']);
         civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-sepa', 'payment_processor_type_id' => 'Dummy']);
+        civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-card', 'payment_processor_type_id' => 'Dummy']);
         //Sepa extension creates a Dummy creditor on install, but it doesn't have a type
         civicrm_api3('Setting', 'create', ['batching_default_creditor' => 1]);
       }, '2')  //Increase this value whenever modifying the callback so that the env builder detects the change
