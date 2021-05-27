@@ -36,7 +36,7 @@ class CRM_WeAct_ActionProcessor {
           'external_identifier' => $this->externalIdentifier($action->externalSystem, $action->actionPageId),
           'campaign_type_id' => $this->campaignType($action->actionType),
           'start_date' => date('Y-m-d H:i:s'),
-          $this->settings->campaignLanguageField => $action->language,
+          $this->settings->customFields['campaign_language'] => $action->language,
         ]);
         $entry = $create_result['values'][0];
       }

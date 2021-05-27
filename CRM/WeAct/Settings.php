@@ -5,7 +5,6 @@ class CRM_WeAct_Settings {
 
   private function __construct() {
     $this->anonymousId = Civi::settings()->get('anonymous_id');
-    $this->campaignLanguageField = Civi::settings()->get('field_language');
     $this->membersGroupId = Civi::settings()->get('group_id');
     //Mapping of locale => greeting id
     $this->emailGreetingIds = $this->fetchEmailGreetingIds();
@@ -65,13 +64,19 @@ class CRM_WeAct_Settings {
     $custom_fields = [];
     foreach (['', 'recur_'] as $group) {
       foreach (['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'] as $field_name) {
-        $get_field = civicrm_api3('CustomField', 'get', [
-          'custom_group_id' => $group . 'utm',
-          'name' => $field_name,
-        ]);
-        $custom_fields[$group . $field_name] = 'custom_' . $get_field['id'];
+        $custom_fields[$group . $field_name] = $this->getCustomField($group . 'utm', $field_name);
       }
     }
+    $custom_fields['campaign_language'] = $this->getCustomField('speakout_integration', 'language');
+    return $custom_fields;
+  }
+
+  protected function getCustomField($group, $name) {
+    $get_field = civicrm_api3('CustomField', 'get', [
+      'custom_group_id' => $group,
+      'name' => $name,
+    ]);
+    return 'custom_' . $get_field['id'];
   }
 
   //TODO is this used?

@@ -40,7 +40,8 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertGreaterThan(0, $campaign['id']);
     $this->assertEquals($campaign['name'], 'fund/us');
     $this->assertEquals($campaign['external_identifier'], 'proca_3');
-    $this->assertEquals($campaign[$processor->settings->campaignLanguageField], 'pl_PL');
+    $extra_campaign = civicrm_api3('Campaign', 'getsingle', ['id' => $campaign['id'], 'return' => [$processor->settings->customFields['campaign_language']]]);
+    $this->assertEquals($extra_campaign[$processor->settings->customFields['campaign_language']], 'pl_PL');
   }
 
   public function testHoudiniCampaignNew() {
@@ -50,7 +51,8 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertGreaterThan(0, $campaign['id']);
     $this->assertEquals($campaign['name'], 'something-PL');
     $this->assertEquals($campaign['external_identifier'], 'cc_42');
-    $this->assertEquals($campaign[$processor->settings->campaignLanguageField], 'pl_PL');
+    $extra_campaign = civicrm_api3('Campaign', 'getsingle', ['id' => $campaign['id'], 'return' => [$processor->settings->customFields['campaign_language']]]);
+    $this->assertEquals($extra_campaign[$processor->settings->customFields['campaign_language']], 'pl_PL');
   }
 
   public function testHoudiniCampaignExisting() {
