@@ -38,10 +38,10 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $donation->fee = 0;
     $donation->currency = strtoupper($json_donation->fields->currency);
     $donation->processor = $this->externalSystem . '-' . $json_donation->fields->payment_method_types;
-    /* if ($json_donation->payment_processor == 'sepa') {
-      $donation->iban = $json_donation->iban;
-      $donation->bic = $json_donation->bic;
-    } */
+    if ($json_donation->fields->payment_method_types == 'sepa') {
+      $donation->iban = $json_donation->fields->IBAN;
+      $donation->bic = $json_donation->fields->BIC;
+    }
     //if ($json_donation->type == 'single') {
       $donation->frequency = 'one-off';
       $donation->donationId = $json_donation->fields->id;

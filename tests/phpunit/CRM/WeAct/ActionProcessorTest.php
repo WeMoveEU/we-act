@@ -86,6 +86,17 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertEquals($get_payment['count'], 1);
   }
 
+  public function testProcaSepaOneoff() {
+    $action = CRM_WeAct_Action_ProcaTest::oneoffSepaAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $get_contrib = civicrm_api3('Contribution', 'get', ['trxn_id' => 'some_sepa_id', 'sequential' => 1]);
+    $this->assertEquals($get_contrib['count'], 1);
+    $get_mandate = civicrm_api3('SepaMandate', 'get', ['iban' => 'PL83101010230000261395100000']);
+    $this->assertEquals($get_mandate['count'], 1);
+  }
+
   public function testHoudiniStripeRecur() {
     $action = CRM_WeAct_Action_HoudiniTest::recurringStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
