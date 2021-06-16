@@ -13,9 +13,9 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $this->contact = $this->buildContact(json_decode($json_msg->contact->payload));
     $this->details = $this->buildDonation($json_msg->action);
     $this->utm = [
-      'source' => NULL, //$json_msg->source->source,
-      'medium' => NULL, //$json_msg->source->medium,
-      'campaign' => NULL, //$json_msg->source->campaign,
+      'source' => $json_msg->tracking->source,
+      'medium' => $json_msg->tracking->medium,
+      'campaign' => $json_msg->tracking->campaign,
     ];
   }
 
