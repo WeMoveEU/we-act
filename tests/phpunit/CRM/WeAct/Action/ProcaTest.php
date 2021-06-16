@@ -24,24 +24,47 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
     $this->assertEquals($action->language, 'pl_PL');
   }
 
-  protected static function oneoffSepaJson() {
+  protected static function oneoffSepaFields() {
+    return <<<JSON
+    {
+        "amount": "1000",
+        "created": "1621499098",
+        "currency": "eur",
+        "IBAN": "PL83101010230000261395100000",
+        "BIC": "NOTPROVIDED",
+        "id": "some_sepa_id",
+        "status": "succeeded",
+        "payment_method_types": "sepa"
+    }
+JSON;
+  }
+
+  protected static function oneoffStripeFields() {
+    return <<<JSON
+    {
+        "amount": "1000",
+        "capture_method": "automatic",
+        "client_secret": "pi_some_secret_gargbage",
+        "confirmation_method": "automatic",
+        "created": "1621499098",
+        "currency": "eur",
+        "id": "pi_somegarbage",
+        "object": "payment_intent",
+        "payment_method": "pm_somecard",
+        "payment_method_types": "card",
+        "status": "succeeded"
+    }
+JSON;
+  }
+
+  protected static function donationJson($fields) {
     return <<<JSON
     {
         "action":
         {
             "actionType": "donate",
             "createdAt": "2021-05-20T08:25:31",
-            "fields":
-            {
-                "amount": "1000",
-                "created": "1621499098",
-                "currency": "eur",
-                "IBAN": "PL83101010230000261395100000",
-                "BIC": "NOTPROVIDED",
-                "id": "some_sepa_id",
-                "status": "succeeded",
-                "payment_method_types": "sepa"
-            }
+            "fields": $fields
         },
         "actionId": 5,
         "actionPage":
@@ -79,68 +102,11 @@ JSON;
   }
 
   public static function oneoffSepaAction() {
-    return new CRM_WeAct_Action_Proca(json_decode(self::oneoffSepaJson()));
-  }
-
-  protected static function oneoffStripeJson() {
-    return <<<JSON
-    {
-        "action":
-        {
-            "actionType": "donate",
-            "createdAt": "2021-05-20T08:25:01",
-            "fields":
-            {
-                "amount": "1000",
-                "capture_method": "automatic",
-                "client_secret": "pi_some_secret_gargbage",
-                "confirmation_method": "automatic",
-                "created": "1621499098",
-                "currency": "eur",
-                "id": "pi_somegarbage",
-                "object": "payment_intent",
-                "payment_method": "pm_somecard",
-                "payment_method_types": "card",
-                "status": "succeeded"
-            }
-        },
-        "actionId": 5,
-        "actionPage":
-        {
-            "locale": "pl",
-            "name": "fund/us",
-            "thankYouTemplateRef": null
-        },
-        "actionPageId": 3,
-        "campaign":
-        {
-            "externalId": null,
-            "name": "STC",
-            "title": "Some Test Campaign"
-        },
-        "campaignId": 2,
-        "contact":
-        {
-            "email": "romain@test.eu",
-            "firstName": "Romain",
-            "payload": "{\"area\":\"FR\",\"country\":\"FR\",\"email\":\"romain@test.eu\",\"firstName\":\"Romain\",\"lastName\":\"Tester\",\"postcode\":\"12345\"}",
-            "ref": "E2Cc0yLjyseWUVfDzlelGaALVP3QAZNNYuL1RCybAl8"
-        },
-        "orgId": 3,
-        "privacy":
-        {
-            "communication": false,
-            "givenAt": "2021-05-20T08:25:01Z"
-        },
-        "schema": "proca:action:1",
-        "stage": "deliver",
-        "tracking": null
-    }
-JSON;
+    return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(self::oneoffSepaFields())));
   }
 
   public static function oneoffStripeAction() {
-    return new CRM_WeAct_Action_Proca(json_decode(self::oneoffStripeJson()));
+    return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(self::oneoffStripeFields())));
   }
 
 }
