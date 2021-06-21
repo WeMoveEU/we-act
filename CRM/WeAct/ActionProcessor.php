@@ -67,9 +67,9 @@ class CRM_WeAct_ActionProcessor {
       $consentParams = [
         'contact_id' => $contact['id'],
         'campaign_id' => $campaign_id,
-        'utm_source' => $action->utm['source'],
-        'utm_medium' => $action->utm['medium'],
-        'utm_campaign' => $action->utm['campaign'],
+        'utm_source' => CRM_Utils_Array::value('source', $action->utm),
+        'utm_medium' => CRM_Utils_Array::value('medium', $action->utm),
+        'utm_campaign' => CRM_Utils_Array::value('campaign', $action->utm),
       ];
       civicrm_api3('Gidipirus', 'send_consent_request', $consentParams);
     }

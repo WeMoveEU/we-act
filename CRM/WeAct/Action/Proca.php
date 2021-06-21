@@ -12,11 +12,15 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $this->location = "proca.wemove.eu:donate";
     $this->contact = $this->buildContact(json_decode($json_msg->contact->payload));
     $this->details = $this->buildDonation($json_msg->action);
-    $this->utm = [
-      'source' => $json_msg->tracking->source,
-      'medium' => $json_msg->tracking->medium,
-      'campaign' => $json_msg->tracking->campaign,
-    ];
+    if (property_exists($json_msg, 'tracking') && $json_msg->tracking) {
+      $this->utm = [
+        'source' => $json_msg->tracking->source,
+        'medium' => $json_msg->tracking->medium,
+        'campaign' => $json_msg->tracking->campaign,
+      ];
+    } else {
+      $this->utm = NULL;
+    }
   }
 
   protected function buildContact($json_contact) {

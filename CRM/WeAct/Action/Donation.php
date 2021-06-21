@@ -50,9 +50,9 @@ class CRM_WeAct_Action_Donation {
       //Mandates don't have utm fields, so associate them to recurring contrib created along with mandate
       civicrm_api3('ContributionRecur', 'create', [
         'id' => $create_mandate['values'][0]['entity_id'],
-        $this->settings->customFields['recur_utm_source'] => $utm['source'],
-        $this->settings->customFields['recur_utm_medium'] => $utm['medium'],
-        $this->settings->customFields['recur_utm_campaign'] => $utm['campaign'],
+        $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
+        $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
+        $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ]);
     } else {
       $params = [
@@ -70,9 +70,9 @@ class CRM_WeAct_Action_Donation {
         'payment_instrument_id' => $this->settings->paymentInstrumentId,
         'payment_processor_id' => $this->settings->paymentProcessorIds[$this->processor],
         'campaign_id' => $campaign_id,
-        $this->settings->customFields['recur_utm_source'] => $utm['source'],
-        $this->settings->customFields['recur_utm_medium'] => $utm['medium'],
-        $this->settings->customFields['recur_utm_campaign'] => $utm['campaign'],
+        $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
+        $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
+        $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ];
       $create_recur = civicrm_api3('ContributionRecur', 'create', $params);
       $this->createContrib($campaign_id, $contact_id, $action_page, $location, $utm, $create_recur['id']);
@@ -86,9 +86,9 @@ class CRM_WeAct_Action_Donation {
       //Mandates don't have utm fields, so associate them to recurring contrib created along with mandate
       civicrm_api3('Contribution', 'create', [
         'id' => $create_mandate['values'][0]['entity_id'],
-        $this->settings->customFields['utm_source'] => $utm['source'],
-        $this->settings->customFields['utm_medium'] => $utm['medium'],
-        $this->settings->customFields['utm_campaign'] => $utm['campaign'],
+        $this->settings->customFields['utm_source'] => CRM_Utils_Array::value('source', $utm),
+        $this->settings->customFields['utm_medium'] => CRM_Utils_Array::value('medium', $utm),
+        $this->settings->customFields['utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ]);
     }
     else {
@@ -116,9 +116,9 @@ class CRM_WeAct_Action_Donation {
         //The utm params will be set by a hook in contributm extension, let's not mess with it
       }
       else {
-        $params[$this->settings->customFields['utm_source']] = $utm['source'];
-        $params[$this->settings->customFields['utm_medium']] = $utm['medium'];
-        $params[$this->settings->customFields['utm_campaign']] = $utm['campaign'];
+        $params[$this->settings->customFields['utm_source']] = CRM_Utils_Array::value('source', $utm);
+        $params[$this->settings->customFields['utm_medium']] = CRM_Utils_Array::value('medium', $utm);
+        $params[$this->settings->customFields['utm_campaign']] = CRM_Utils_Array::value('campaign', $utm);
       }
       civicrm_api3('Contribution', 'create', $params);
     }

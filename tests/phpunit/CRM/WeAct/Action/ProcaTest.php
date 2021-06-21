@@ -57,7 +57,17 @@ JSON;
 JSON;
   }
 
-  protected static function donationJson($fields) {
+  protected static function utmTracking() {
+    return <<<JSON
+    {
+        "campaign": "unit-tests",
+        "source": "tester",
+        "medium": "phpunit"
+    }
+JSON;
+  }
+
+  protected static function donationJson($fields, $tracking = "null") {
     return <<<JSON
     {
         "action":
@@ -96,17 +106,21 @@ JSON;
         },
         "schema": "proca:action:1",
         "stage": "deliver",
-        "tracking": null
+        "tracking": $tracking
     }
 JSON;
   }
 
   public static function oneoffSepaAction() {
-    return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(self::oneoffSepaFields())));
+    return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(
+      self::oneoffSepaFields()
+    )));
   }
 
   public static function oneoffStripeAction() {
-    return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(self::oneoffStripeFields())));
+    return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(
+      self::oneoffStripeFields(), self::utmTracking()
+    )));
   }
 
 }
