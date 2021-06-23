@@ -19,29 +19,52 @@ class CRM_WeAct_ActionProcessor {
    * to which the given action is to be associated
    */
   public function getOrCreateCampaign(CRM_WeAct_Action $action) {
-    $key = "WeAct:ActionPage:{$action->externalSystem}:{$action->actionPageId}";
-    $entry = Civi::cache()->get($key);
+    $entry = NULL;
+
+    // If the action seems to come from a mailing (according to utm), use the campaign of the mailing
+    if ($action->utm && substr($action->utm['source'], 0, 9) == 'civimail-') {
+      $source = $action->utm['source'];
+      $key = "WeAct:MailingCampaign:{$source}";
+      $entry = Civi::cache()->get($key);
+      if (!$entry) {
+        //Use civicrm_api instead of civicrm_api3 to avoid exception when entity not found
+        $mailing_result = civicrm_api('Mailing', 'getsingle', ['version' => 3, 'id' => substr($source, 9, strlen($source))]);
+        if (isset($mailing_result['id'])) {
+          $campaign_result = civicrm_api('Campaign', 'getsingle', ['version' => 3, 'id' => $mailing_result['campaign_id']]);
+          if (isset($campaign_result['id'])) {
+            $entry = $campaign_result;
+            Civi::cache()->set($key, $entry);
+          }
+        }
+      }
+    }
+
+    // If not, use the action page as an external identifier of the campaign
     if (!$entry) {
-      $external_id = $this->externalIdentifier($action->externalSystem, $action->actionPageId);
-      $get_params = ['sequential' => 1, 'external_identifier' => $external_id];
-      $get_result = civicrm_api3('Campaign', 'get', $get_params);
-      if ($get_result['count'] == 1) {
-        $entry = $get_result['values'][0];
+      $key = "WeAct:ActionPage:{$action->externalSystem}:{$action->actionPageId}";
+      $entry = Civi::cache()->get($key);
+      if (!$entry) {
+        $external_id = $this->externalIdentifier($action->externalSystem, $action->actionPageId);
+        $get_params = ['sequential' => 1, 'external_identifier' => $external_id];
+        $get_result = civicrm_api3('Campaign', 'get', $get_params);
+        if ($get_result['count'] == 1) {
+          $entry = $get_result['values'][0];
+        }
+        else {
+          $create_result = civicrm_api3('Campaign', 'create', [
+            'sequential' => 1,
+            'name' => $action->actionPageName,
+            'title' => $action->actionPageName,
+            'description' => $action->actionPageName,
+            'external_identifier' => $external_id,
+            'campaign_type_id' => $this->campaignType($action->actionType),
+            'start_date' => date('Y-m-d H:i:s'),
+            $this->settings->customFields['campaign_language'] => $action->language,
+          ]);
+          $entry = $create_result['values'][0];
+        }
+        Civi::cache()->set($key, $entry);
       }
-      else {
-        $create_result = civicrm_api3('Campaign', 'create', [
-          'sequential' => 1,
-          'name' => $action->actionPageName,
-          'title' => $action->actionPageName,
-          'description' => $action->actionPageName,
-          'external_identifier' => $external_id,
-          'campaign_type_id' => $this->campaignType($action->actionType),
-          'start_date' => date('Y-m-d H:i:s'),
-          $this->settings->customFields['campaign_language'] => $action->language,
-        ]);
-        $entry = $create_result['values'][0];
-      }
-      Civi::cache()->set($key, $entry);
     }
     return $entry;
   }

@@ -57,11 +57,14 @@ JSON;
 JSON;
   }
 
-  protected static function utmTracking() {
+  public static function utmTracking($source = "tester") {
+    if (!$source) {  //Also accept NULL as default value
+      $source = "tester";
+    }
     return <<<JSON
     {
         "campaign": "unit-tests",
-        "source": "tester",
+        "source": "$source",
         "medium": "phpunit"
     }
 JSON;
@@ -117,9 +120,9 @@ JSON;
     )));
   }
 
-  public static function oneoffStripeAction() {
+  public static function oneoffStripeAction($tracking = "null") {
     return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(
-      self::oneoffStripeFields(), self::utmTracking()
+      self::oneoffStripeFields(), $tracking
     )));
   }
 
