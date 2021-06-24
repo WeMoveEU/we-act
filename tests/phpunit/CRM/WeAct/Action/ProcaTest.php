@@ -58,9 +58,6 @@ JSON;
   }
 
   public static function utmTracking($source = "tester") {
-    if (!$source) {  //Also accept NULL as default value
-      $source = "tester";
-    }
     return <<<JSON
     {
         "campaign": "unit-tests",
@@ -70,7 +67,19 @@ JSON;
 JSON;
   }
 
-  protected static function donationJson($fields, $tracking = "null") {
+  public static function speakoutTracking() {
+    return <<<JSON
+    {
+        "campaign": "unit-tests",
+        "source": "code",
+        "medium": "phpunit",
+        "location": "https://speakout/campaigns/foo",
+        "locationId": 666
+    }
+JSON;
+  }
+
+  protected static function donationJson($fields, $tracking = 'null') {
     return <<<JSON
     {
         "action":

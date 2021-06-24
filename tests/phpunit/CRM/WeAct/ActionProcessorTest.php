@@ -29,57 +29,9 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->contactId = $contact_result['id'];
 
     $campaign_result = civicrm_api3('Campaign', 'create', [
-      'campaign_type_id' => 1, 'title' => 'Transient campaign'
+      'campaign_type_id' => 1, 'title' => 'Transient campaign', 'external_identifier' => 42
     ]);
     $this->campaignId = $campaign_result['id'];
-  }
-
-  public function testProcaCampaignNew() {
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $campaign = $processor->getOrCreateCampaign($action);
-    $this->assertGreaterThan(0, $campaign['id']);
-    $this->assertEquals($campaign['name'], 'fund/us');
-    $this->assertEquals($campaign['external_identifier'], 'proca_3');
-    $extra_campaign = civicrm_api3('Campaign', 'getsingle', ['id' => $campaign['id'], 'return' => [$processor->settings->customFields['campaign_language']]]);
-    $this->assertEquals($extra_campaign[$processor->settings->customFields['campaign_language']], 'pl_PL');
-  }
-
-  public function testProcaCampaignFromMailing() {
-    $mailing_result = civicrm_api3('Mailing', 'create', [
-      'campaign_id' => $this->campaignId
-    ]);
-    $mailingId = $mailing_result['id'];
-
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(CRM_WeAct_Action_ProcaTest::utmTracking("civimail-$mailingId"));
-    $processor = new CRM_WeAct_ActionProcessor();
-    $campaign = $processor->getOrCreateCampaign($action);
-    $this->assertEquals($campaign['id'], $this->campaignId);
-  }
-
-  public function testHoudiniCampaignNew() {
-    $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $campaign = $processor->getOrCreateCampaign($action);
-    $this->assertGreaterThan(0, $campaign['id']);
-    $this->assertEquals($campaign['name'], 'something-PL');
-    $this->assertEquals($campaign['external_identifier'], 'cc_42');
-    $extra_campaign = civicrm_api3('Campaign', 'getsingle', ['id' => $campaign['id'], 'return' => [$processor->settings->customFields['campaign_language']]]);
-    $this->assertEquals($extra_campaign[$processor->settings->customFields['campaign_language']], 'pl_PL');
-  }
-
-  public function testHoudiniCampaignExisting() {
-    $campaign_result = civicrm_api3('Campaign', 'create', [
-      'name' => 'existing-PL',
-      'title' => 'existing',
-      'external_identifier' => 'cc_42'
-    ]);
-    $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $campaign = $processor->getOrCreateCampaign($action);
-    $this->assertEquals($campaign['id'], $campaign_result['id']);
-    $this->assertEquals($campaign['name'], 'existing-PL');
-    $this->assertEquals($campaign['external_identifier'], 'cc_42');
   }
 
   public function testHoudiniContactNew() {

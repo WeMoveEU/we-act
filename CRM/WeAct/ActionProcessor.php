@@ -4,69 +4,15 @@ class CRM_WeAct_ActionProcessor {
 
   public function __construct() {
     $this->settings = CRM_WeAct_Settings::instance();
+    $this->campaignCache = new CRM_WeAct_CampaignCache(Civi::cache(), new \GuzzleHttp\Client());
   }
 
   public function process(CRM_WeAct_Action $action) {
-    $campaign = $this->getOrCreateCampaign($action);
+    $campaign = $this->campaignCache->getFromAction($action);
     $contact_id = $this->getOrCreateContact($action, $campaign['id']);
     if ($action->actionType == 'donate') {
       $this->processDonation($action, $campaign['id'], $contact_id);
     }
-  }
-
-  /**
-   * Fetches from cache, DB or create and cache the CiviCRM campaign
-   * to which the given action is to be associated
-   */
-  public function getOrCreateCampaign(CRM_WeAct_Action $action) {
-    $entry = NULL;
-
-    // If the action seems to come from a mailing (according to utm), use the campaign of the mailing
-    if ($action->utm && substr($action->utm['source'], 0, 9) == 'civimail-') {
-      $source = $action->utm['source'];
-      $key = "WeAct:MailingCampaign:{$source}";
-      $entry = Civi::cache()->get($key);
-      if (!$entry) {
-        //Use civicrm_api instead of civicrm_api3 to avoid exception when entity not found
-        $mailing_result = civicrm_api('Mailing', 'getsingle', ['version' => 3, 'id' => substr($source, 9, strlen($source))]);
-        if (isset($mailing_result['id'])) {
-          $campaign_result = civicrm_api('Campaign', 'getsingle', ['version' => 3, 'id' => $mailing_result['campaign_id']]);
-          if (isset($campaign_result['id'])) {
-            $entry = $campaign_result;
-            Civi::cache()->set($key, $entry);
-          }
-        }
-      }
-    }
-
-    // If not, use the action page as an external identifier of the campaign
-    if (!$entry) {
-      $key = "WeAct:ActionPage:{$action->externalSystem}:{$action->actionPageId}";
-      $entry = Civi::cache()->get($key);
-      if (!$entry) {
-        $external_id = $this->externalIdentifier($action->externalSystem, $action->actionPageId);
-        $get_params = ['sequential' => 1, 'external_identifier' => $external_id];
-        $get_result = civicrm_api3('Campaign', 'get', $get_params);
-        if ($get_result['count'] == 1) {
-          $entry = $get_result['values'][0];
-        }
-        else {
-          $create_result = civicrm_api3('Campaign', 'create', [
-            'sequential' => 1,
-            'name' => $action->actionPageName,
-            'title' => $action->actionPageName,
-            'description' => $action->actionPageName,
-            'external_identifier' => $external_id,
-            'campaign_type_id' => $this->campaignType($action->actionType),
-            'start_date' => date('Y-m-d H:i:s'),
-            $this->settings->customFields['campaign_language'] => $action->language,
-          ]);
-          $entry = $create_result['values'][0];
-        }
-        Civi::cache()->set($key, $entry);
-      }
-    }
-    return $entry;
   }
 
   public function getOrCreateContact(CRM_WeAct_Action $action, $campaign_id) {
@@ -111,21 +57,5 @@ class CRM_WeAct_ActionProcessor {
     else if (!$donation->findMatchingContrib()) {
       $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
     }
-  }
-
-  public function externalIdentifier($system, $id) {
-    if ($system == 'houdini') {
-      $external_id = $id;
-    } else {
-      $external_id = "{$system}_$id";
-    }
-    return $external_id;
-  }
-
-  public function campaignType($actionType) {
-    if ($actionType == 'donate') {
-      return CRM_Core_PseudoConstant::getKey('CRM_Campaign_BAO_Campaign', 'campaign_type_id', 'Fundraising');
-    }
-    throw new Exception("Unsupported action type");
   }
 }

@@ -5,6 +5,7 @@ class CRM_WeAct_Settings {
 
   private function __construct() {
     $this->anonymousId = Civi::settings()->get('anonymous_id');
+    $this->defaultSender = CRM_Core_BAO_Setting::getItem('Speakcivi API Preferences', 'from');
     $this->membersGroupId = Civi::settings()->get('group_id');
     //Mapping of locale => greeting id
     $this->emailGreetingIds = $this->fetchEmailGreetingIds();
@@ -72,7 +73,21 @@ class CRM_WeAct_Settings {
         $custom_fields[$group . $field_name] = $this->getCustomField($group . 'utm', $field_name);
       }
     }
-    $custom_fields['campaign_language'] = $this->getCustomField('speakout_integration', 'language');
+    $campaign_fields = [
+      'language' => 'language',
+      'sender' => 'sender_email',
+      'url' => 'url_campaign',
+      'slug' => 'utm_campaign',
+      'twitter_share' => 'twitter_share_text',
+      'confirm_subject' => 'subject_new',
+      'confirm_body' => 'message_new',
+      'postaction_subject' => 'subject_member',
+      'postaction_body' => 'message_member',
+      'consent_ids' => 'Consent_IDs',
+    ];
+    foreach ($campaign_fields as $key => $field_name) {
+      $custom_fields["campaign_$key"] = $this->getCustomField('speakout_integration', $field_name);
+    }
     return $custom_fields;
   }
 
