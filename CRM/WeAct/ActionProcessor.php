@@ -47,15 +47,17 @@ class CRM_WeAct_ActionProcessor {
   }
 
   public function processDonation($action, $campaign_id, $contact_id) {
-    $donation = $action->details;
-    $rcontrib_id = NULL;
-    if ($donation->isRecurring()) {
-      if (!$donation->findMatchingContribRecur()) {
-        $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+    CRM_Core_Transaction::create(TRUE)->run(function(CRM_Core_Transaction $tx) use ($action, $campaign_id, $contact_id) {
+      $donation = $action->details;
+      $rcontrib_id = NULL;
+      if ($donation->isRecurring()) {
+        if (!$donation->findMatchingContribRecur()) {
+          $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+        }
       }
-    }
-    else if (!$donation->findMatchingContrib()) {
-      $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
-    }
+      else if (!$donation->findMatchingContrib()) {
+        $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+      }
+    });
   }
 }
