@@ -20,7 +20,7 @@ class CRM_WeAct_CampaignCache {
       $campaign = $this->getFromMailingSource($action->utm['source']);
     }
 
-    if (@$action->locationId) {
+    if (!$campaign && @$action->locationId) {
       $campaign = $this->getOrCreateSpeakout($action->location, $action->locationId);
     }
 
@@ -45,21 +45,40 @@ class CRM_WeAct_CampaignCache {
     return $campaign;
   }
 
-  protected function getFromMailingSource($source) {
-    $key = "WeAct:MailingCampaign:{$source}";
+  public function getCiviCampaign($campaign_id) {
+    $key = "WeAct:Campaign:{$campaign_id}";
     $entry = $this->cache->get($key);
     if (!$entry) {
-      //Use civicrm_api instead of civicrm_api3 to avoid exception when entity not found
-      $mailing_result = civicrm_api('Mailing', 'getsingle', ['version' => 3, 'id' => substr($source, 9, strlen($source))]);
-      if (isset($mailing_result['id'])) {
-        $campaign_result = civicrm_api('Campaign', 'getsingle', ['version' => 3, 'id' => $mailing_result['campaign_id']]);
-        if (isset($campaign_result['id'])) {
-          $entry = $campaign_result;
-          $this->cache->set($key, $entry);
-        }
-      }
+      $entry = civicrm_api3('Campaign', 'getsingle', ['id' => $campaign_id]);
+      $this->setCiviCampaign($entry);
     }
     return $entry;
+  }
+
+  public function setCiviCampaign($campaign) {
+    $key = "WeAct:Campaign:{$campaign['id']}";
+    $this->cache->set($key, $campaign);
+  }
+
+  protected function getFromMailingSource($source) {
+    $key = "WeAct:MailingCampaign:{$source}";
+    $campaign_id = $this->cache->get($key);
+    if ($campaign_id === NULL) {
+      //Use civicrm_api instead of civicrm_api3 to avoid exception when entity not found
+      $mailing_result = civicrm_api('Mailing', 'getsingle', ['version' => 3, 'id' => substr($source, 9, strlen($source))]);
+      //If no campaign id is set, store 0 so that we hit the cache next time
+      if (isset($mailing_result['id'])) {
+        $campaign_id = $mailing_result['campaign_id'] ?? 0;
+      } else {
+        $campaign_id = 0;
+      }
+      $this->cache->set($key, $campaign_id);
+    }
+
+    if ($campaign_id) {
+      return $this->getCiviCampaign($campaign_id);
+    }
+    return NULL;
   }
 
   protected function getOrCreateSpeakout($speakout_url, $speakout_id) {
@@ -75,15 +94,19 @@ class CRM_WeAct_CampaignCache {
 
   protected function getExternalCampaign($external_system, $external_id) {
     $key = "WeAct:ActionPage:$external_system:$external_id";
-    $campaign = $this->cache->get($key);
-    if (!$campaign) {
+    $campaign_id = $this->cache->get($key);
+    if ($campaign_id === NULL) {
       $external_identifier = $this->externalIdentifier($external_system, $external_id);
       $get_params = ['sequential' => 1, 'external_identifier' => $external_identifier];
       $get_result = civicrm_api3('Campaign', 'get', $get_params);
       if ($get_result['count'] == 1) {
         $campaign = $get_result['values'][0];
+        $this->cache->set($key, $campaign['id']);
+      } else {
+        $campaign = NULL;
       }
-      $this->cache->set($key, $campaign);
+    } else {
+      $campaign = $this->getCiviCampaign($campaign_id);
     }
     return $campaign;
   }

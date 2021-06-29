@@ -47,7 +47,22 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(CRM_WeAct_Action_ProcaTest::utmTracking("civimail-$mailingId"));
     $camp_cache = $this->buildCache(NULL);
     $campaign = $camp_cache->getFromAction($action);
-    $this->assertEquals($campaign['id'], $this->campaignId);
+    $this->assertEquals($this->campaignId, $campaign['id']);
+  }
+
+  public function testProcaCampaignFromMailingUpdated() {
+    $mailing_result = civicrm_api3('Mailing', 'create', [
+      'campaign_id' => $this->campaignId
+    ]);
+    $mailingId = $mailing_result['id'];
+
+    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(CRM_WeAct_Action_ProcaTest::utmTracking("civimail-$mailingId"));
+    $camp_cache = $this->buildCache(NULL);
+    $campaign = $camp_cache->getFromAction($action);
+    $this->assertEquals($campaign['title'], 'Transient campaign');
+    civicrm_api3('Campaign', 'create', ['id' => $this->campaignId, 'title' => 'Updated transient campaign']);
+    $campaign = $camp_cache->getFromAction($action);
+    $this->assertEquals('Updated transient campaign', $campaign['title']);
   }
 
   public function testProcaCampaignFromSpeakoutNew() {
@@ -88,5 +103,6 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     $this->assertEquals($campaign['name'], 'existing-PL');
     $this->assertEquals($campaign['external_identifier'], 'cc_42');
   }
+
 
 }
