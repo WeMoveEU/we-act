@@ -146,7 +146,6 @@ function we_act_civicrm_themes(&$themes) {
 function we_act_civicrm_post($op, $objectName, $objectId, &$objectRef) {
   if ($objectName == 'Campaign' && $op == 'edit') {
     $entry = civicrm_api3('Campaign', 'getsingle', ['id' => $objectId]);
-    $key = "WeAct:Campaign:{$objectId}";
     $cache = new CRM_WeAct_CampaignCache(Civi::cache(), NULL);
     $cache->setCiviCampaign($entry);
   }

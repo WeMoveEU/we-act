@@ -81,7 +81,7 @@ class CRM_WeAct_CampaignCache {
     return NULL;
   }
 
-  protected function getOrCreateSpeakout($speakout_url, $speakout_id) {
+  public function getOrCreateSpeakout($speakout_url, $speakout_id) {
     $entry = $this->getExternalCampaign('speakout', $speakout_id);
     if (!$entry) {
       $urlments = parse_url($speakout_url);

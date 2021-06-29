@@ -451,8 +451,8 @@ class CRM_WeAct_Dictionary {
    * @return mixed|string
    */
   public static function getMessageNew($locale) {
-    $filename = dirname(__FILE__).'/../../../templates/CRM/Speakcivi/Page/ConfirmationMessageNew.'.$locale.'.tpl';
-    $default = dirname(__FILE__).'/../../../templates/CRM/Speakcivi/Page/ConfirmationMessageNew.tpl';
+    $filename = dirname(__FILE__).'/../../templates/we-act/emails/ConfirmationMessageNew.'.$locale.'.tpl';
+    $default = dirname(__FILE__).'/../../templates/we-act/emails/ConfirmationMessageNew.tpl';
     return self::getMessageContent($filename, $default);
   }
 
