@@ -42,13 +42,27 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertConsentRequestSent();
   }
 
+  public function assertContribution($trxn_id) {
+    $get_payment = civicrm_api3('Contribution', 'get', ['trxn_id' => $trxn_id]);
+    $this->assertEquals($get_payment['count'], 1);
+  }
+
   public function testProcaStripeOneoff() {
     $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $get_payment = civicrm_api3('Contribution', 'get', ['trxn_id' => 'pi_somegarbage']);
-    $this->assertEquals($get_payment['count'], 1);
+    $this->assertContribution('pi_somegarbage');
+  }
+
+  public function testProcaStripeRecur() {
+    $action = CRM_WeAct_Action_ProcaTest::recurringStripeAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => 'sub_scription']);
+    $this->assertEquals($get_recur['count'], 1);
+    $this->assertContribution('pi_somegarbage');
   }
 
   public function testProcaSepaOneoff() {
@@ -56,10 +70,17 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $get_contrib = civicrm_api3('Contribution', 'get', ['trxn_id' => 'some_sepa_id', 'sequential' => 1]);
-    $this->assertEquals($get_contrib['count'], 1);
+    $this->assertContribution('proca_5');
     $get_mandate = civicrm_api3('SepaMandate', 'get', ['iban' => 'PL83101010230000261395100000']);
     $this->assertEquals($get_mandate['count'], 1);
+  }
+
+  public function testProcaPaypalOneoff() {
+    $action = CRM_WeAct_Action_ProcaTest::oneoffPaypalAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $this->assertContribution('S0M31D');
   }
 
   public function testHoudiniStripeRecur() {

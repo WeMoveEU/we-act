@@ -10,7 +10,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $this->actionPageName = $json_msg->actionPage->name;
     $this->language = $this->determineLanguage($json_msg->actionPage->locale);
     $this->contact = $this->buildContact(json_decode($json_msg->contact->payload));
-    $this->details = $this->buildDonation($json_msg->action);
+    $this->details = $this->buildDonation($json_msg->actionId, $json_msg->action);
     if (property_exists($json_msg, 'tracking') && $json_msg->tracking) {
       $this->utm = [
         'source' => @$json_msg->tracking->source,
@@ -18,7 +18,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
         'campaign' => @$json_msg->tracking->campaign,
       ];
       $this->location = @$json_msg->tracking->location;
-      $this->locationId = @$json_msg->tracking->locationId;
+      $this->locationId = @$json_msg->action->fields->speakoutCampaign;
     } else {
       $this->utm = NULL;
       $this->location = "proca:donate";
@@ -35,28 +35,41 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     return $contact;
   }
 
-  protected function buildDonation($json_donation) {
+  protected function buildDonation($action_id, $json_action) {
     $statusMap = ['succeeded' => 'Completed', 'failed' => 'Failed'];
     $donation = new CRM_WeAct_Action_Donation();
-    $donation->createdAt = $json_donation->createdAt;
-    $donation->status = $statusMap[$json_donation->fields->status];
-    $donation->amount = intval($json_donation->fields->amount) / 100;
+    $donation->createdAt = $json_action->createdAt;
+    $donation->status = 'Completed'; //FIXME $statusMap[$json_action->fields->status];
+    $donation->amount = intval($json_action->donation->amount) / 100;
     $donation->fee = 0;
-    $donation->currency = strtoupper($json_donation->fields->currency);
-    $donation->processor = $this->externalSystem . '-' . $json_donation->fields->payment_method_types;
-    if ($json_donation->fields->payment_method_types == 'sepa') {
-      $donation->iban = $json_donation->fields->IBAN;
-      $donation->bic = $json_donation->fields->BIC;
-    }
-    //if ($json_donation->type == 'single') {
+    $donation->currency = strtoupper($json_action->donation->currency);
+
+    if ($json_action->donation->frequencyUnit == 'one_off') {
       $donation->frequency = 'one-off';
-      $donation->donationId = $json_donation->fields->id;
-    /*}
+    }
     else {
       $donation->frequency = 'monthly';
-      $donation->donationId = $json_donation->recurring_id;
-    }*/
-    $donation->paymentId = $json_donation->fields->id;
+    }
+
+    $provider = $json_action->donation->payload->provider;
+    $donation->processor = $this->externalSystem . '-' . $provider;
+    if ($provider == 'sepa') {
+      $donation->iban = $json_action->donation->payload->iban;
+      $donation->bic = "NOTPROVIDED";
+      $donation->paymentId = "proca_$action_id";
+      $donation->donationId = $donation->paymentId;
+    } else if ($provider == 'stripe') {
+      $donation->paymentId = $json_action->donation->payload->paymentIntent->response->id;
+      if ($donation->frequency == 'one-off') {
+        $donation->donationId = $donation->paymentId;
+      } else {
+        $donation->donationId = $json_action->donation->payload->paymentIntent->subscriptionId;
+      }
+    } else if ($provider == "paypal") {
+      $donation->paymentId = $json_action->donation->payload->order->id;
+      $donation->donationId = $donation->paymentId;
+    }
+
     return $donation;
   }
 

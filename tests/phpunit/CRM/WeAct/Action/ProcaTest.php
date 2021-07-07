@@ -24,68 +24,96 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
     $this->assertEquals($action->language, 'pl_PL');
   }
 
-  protected static function oneoffSepaFields() {
+  protected static function sepaPayload() {
     return <<<JSON
     {
-        "amount": "1000",
-        "created": "1621499098",
-        "currency": "eur",
-        "IBAN": "PL83101010230000261395100000",
-        "BIC": "NOTPROVIDED",
-        "id": "some_sepa_id",
-        "status": "succeeded",
-        "payment_method_types": "sepa"
+        "iban": "PL83101010230000261395100000",
+        "provider": "sepa"
     }
 JSON;
   }
 
-  protected static function oneoffStripeFields() {
+  protected static function stripePayload($frequency) {
+    $subscription = "";
+    if ($frequency != "one_off") {
+      $subscription = ', "subscriptionId": "sub_scription"';
+    }
+    return <<<JSON
+    {
+        "paymentIntent": {
+            "response": {
+                "id": "pi_somegarbage",
+                "customer": "cus_someone"
+            }
+            $subscription
+        },
+        "provider": "stripe"
+    }
+JSON;
+  }
+
+  protected static function paypalPayload() {
+    return <<<JSON
+    {
+        "order": {
+            "id": "S0M31D"
+        },
+        "provider": "paypal"
+    }
+JSON;
+  }
+  protected static function donationJson($frequency, $payload) {
     return <<<JSON
     {
         "amount": "1000",
-        "capture_method": "automatic",
-        "client_secret": "pi_some_secret_gargbage",
-        "confirmation_method": "automatic",
-        "created": "1621499098",
-        "currency": "eur",
-        "id": "pi_somegarbage",
-        "object": "payment_intent",
-        "payment_method": "pm_somecard",
-        "payment_method_types": "card",
-        "status": "succeeded"
+        "currency": "EUR",
+        "frequencyUnit": "$frequency",
+        "payload": $payload
     }
 JSON;
+  }
+
+  protected static function trackingFields($tracking) {
+    if (isset($tracking['speakout_campaign'])) {
+      return '{"speakoutCampaign": "' . $tracking['speakout_campaign'] . '"}';
+    } else {
+      return '{}';
+    }
   }
 
   public static function utmTracking($source = "tester") {
-    return <<<JSON
-    {
-        "campaign": "unit-tests",
-        "source": "$source",
-        "medium": "phpunit"
-    }
-JSON;
+    return [ 'utm' => [
+        "campaign" => "unit-tests",
+        "source" => $source,
+        "medium" => "phpunit"
+    ]];
   }
 
   public static function speakoutTracking() {
-    return <<<JSON
-    {
-        "campaign": "unit-tests",
-        "source": "code",
-        "medium": "phpunit",
-        "location": "https://speakout/campaigns/foo",
-        "locationId": 666
-    }
-JSON;
+    return [
+      'speakout_campaign' => '666',
+      'utm' => [
+        "campaign" => "unit-tests",
+        "source" => "code",
+        "medium" => "phpunit",
+        "location" => "https://speakout/campaigns/foo"
+      ]
+    ];
   }
 
-  protected static function donationJson($fields, $tracking = 'null') {
+  protected static function eventJson($donation, $fields, $tracking) {
+    if ($tracking && isset($tracking['utm'])) {
+      $trackingJson = ', "tracking": ' . json_encode($tracking['utm']);
+    } else {
+      $trackingJson = '';
+    }
     return <<<JSON
     {
         "action":
         {
             "actionType": "donate",
             "createdAt": "2021-05-20T08:25:31",
+            "donation": $donation,
             "fields": $fields
         },
         "actionId": 5,
@@ -117,21 +145,41 @@ JSON;
             "givenAt": "2021-05-20T08:25:01Z"
         },
         "schema": "proca:action:1",
-        "stage": "deliver",
-        "tracking": $tracking
+        "stage": "deliver"
+        $trackingJson
     }
 JSON;
   }
 
-  public static function oneoffSepaAction() {
-    return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(
-      self::oneoffSepaFields()
+  public static function oneoffSepaAction($tracking = NULL) {
+    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
+      self::donationJson("one_off", self::sepaPayload()),
+      self::trackingFields($tracking),
+      $tracking
     )));
   }
 
-  public static function oneoffStripeAction($tracking = "null") {
-    return new CRM_WeAct_Action_Proca(json_decode(self::donationJson(
-      self::oneoffStripeFields(), $tracking
+  public static function oneoffStripeAction($tracking = NULL) {
+    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
+      self::donationJson("one_off", self::stripePayload("one_off")),
+      self::trackingFields($tracking),
+      $tracking
+    )));
+  }
+
+  public static function oneoffPaypalAction() {
+    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
+      self::donationJson("one_off", self::paypalPayload()),
+      self::trackingFields(NULL),
+      NULL
+    )));
+  }
+
+  public static function recurringStripeAction($tracking = NULL) {
+    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
+      self::donationJson("monthly", self::stripePayload("monthly")),
+      self::trackingFields($tracking),
+      $tracking
     )));
   }
 

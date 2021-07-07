@@ -22,14 +22,15 @@ use Civi\Test\TransactionalInterface;
 abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   public function setUpHeadless() {
-    $build_version = 3;  //Increase this value whenever modifying the callback so that the env builder detects the change
+    $build_version = 5;  //Increase this value whenever modifying the callback so that the env builder detects the change
     return \Civi\Test::headless()
       ->install(['eu.wemove.gidipirus', 'eu.wemove.contributm', 'org.project60.sepa'])
       ->callback(function($ctx) {
         civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-card', 'payment_processor_type_id' => 'Dummy']);
         civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-sepa', 'payment_processor_type_id' => 'Dummy']);
-        civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-card', 'payment_processor_type_id' => 'Dummy']);
+        civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-stripe', 'payment_processor_type_id' => 'Dummy']);
         civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-sepa', 'payment_processor_type_id' => 'Dummy']);
+        civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-paypal', 'payment_processor_type_id' => 'Dummy']);
         //Sepa extension creates a Dummy creditor on install, but it doesn't have a type
         civicrm_api3('Setting', 'create', ['batching_default_creditor' => 1]);
       }, $build_version)
