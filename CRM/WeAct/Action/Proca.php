@@ -69,9 +69,13 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
         $donation->providerDonorId = $json_action->donation->payload->customerId;
       }
     } else if ($provider == "paypal") {
-      $donation->paymentMethod = 'paypal';
       $donation->paymentId = $json_action->donation->payload->order->id;
-      $donation->donationId = $donation->paymentId;
+      $donation->paymentMethod = 'paypal';
+      if ($donation->frequency == 'one-off') {
+        $donation->donationId = $donation->paymentId;
+      } else {
+        $donation->donationId = $json_action->donation->payload->subscriptionId;
+      }
     }
 
     return $donation;

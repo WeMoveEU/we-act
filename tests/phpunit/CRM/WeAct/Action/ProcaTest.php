@@ -55,13 +55,18 @@ JSON;
 JSON;
   }
 
-  protected static function paypalPayload() {
+  protected static function paypalPayload($frequency) {
+    $subscription = "";
+    if ($frequency != "one_off") {
+      $subscription = ', "subscriptionId": "I-SUBSCR1PT10N"';
+    }
     return <<<JSON
     {
         "order": {
             "id": "S0M31D"
         },
         "provider": "paypal"
+        $subscription
     }
 JSON;
   }
@@ -172,7 +177,7 @@ JSON;
 
   public static function oneoffPaypalAction() {
     return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("one_off", self::paypalPayload()),
+      self::donationJson("one_off", self::paypalPayload("one_off")),
       self::trackingFields(NULL),
       NULL
     )));
@@ -181,6 +186,14 @@ JSON;
   public static function recurringStripeAction($tracking = NULL) {
     return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
       self::donationJson("monthly", self::stripePayload("monthly")),
+      self::trackingFields($tracking),
+      $tracking
+    )));
+  }
+
+  public static function recurringPaypalAction($tracking = NULL) {
+    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
+      self::donationJson("monthly", self::paypalPayload("monthly")),
       self::trackingFields($tracking),
       $tracking
     )));

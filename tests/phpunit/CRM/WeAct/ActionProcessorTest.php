@@ -86,6 +86,16 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertContribution('S0M31D');
   }
 
+  public function testProcaPaypalRecur() {
+    $action = CRM_WeAct_Action_ProcaTest::recurringPaypalAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => "I-SUBSCR1PT10N"]);
+    $this->assertEquals($get_recur['count'], 1);
+    $this->assertContribution('S0M31D');
+  }
+
   public function testHoudiniStripeRecur() {
     $action = CRM_WeAct_Action_HoudiniTest::recurringStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
