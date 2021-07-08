@@ -60,9 +60,10 @@ jobs:
           repository: WeMoveEU/org.project60.sepa
           ref: 1.4.patched
           path: drupal/sites/all/modules/civicrm/ext/sepa
-      - uses: actions/checkout@v2
+      - uses: sudosubin/git-clone-action@v1.0.1
         with:
-          repository: https://lab.civicrm.org/extensions/mjwshared.git
+          platform: lab.civicrm.org
+          repository: extensions/mjwshared
           ref: master
           path: drupal/sites/all/modules/civicrm/ext/mjwshared
       - uses: actions/checkout@v2
