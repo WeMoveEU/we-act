@@ -40,6 +40,9 @@ class CRM_WeAct_Action_Houdini extends CRM_WeAct_Action {
     if ($json_donation->payment_processor == 'sepa') {
       $donation->iban = $json_donation->iban;
       $donation->bic = $json_donation->bic;
+      $donation->paymentMethod = 'sepa';
+    } else {
+      $donation->paymentMethod = 'card';
     }
     if ($json_donation->type == 'single') {
       $donation->frequency = 'one-off';

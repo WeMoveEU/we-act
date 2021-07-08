@@ -56,13 +56,16 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
   }
 
   public function testProcaStripeRecur() {
+    $sub_id = 'sub_scription';
     $action = CRM_WeAct_Action_ProcaTest::recurringStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => 'sub_scription']);
+    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => $sub_id]);
     $this->assertEquals($get_recur['count'], 1);
     $this->assertContribution('pi_somegarbage');
+    $get_customer = civicrm_api3('StripeCustomer', 'get', ['contact_id' => $this->contactId]);
+    $this->assertEquals($get_customer['count'], 1);
   }
 
   public function testProcaSepaOneoff() {
@@ -90,8 +93,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
 
     $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => 'cc_1']);
     $this->assertEquals($get_recur['count'], 1);
-    $get_payment = civicrm_api3('Contribution', 'get', ['trxn_id' => 'ch_1NHwmdLnnERTfiJAMNHyFjAB']);
-    $this->assertEquals($get_payment['count'], 1);
+    $this->assertContribution('ch_1NHwmdLnnERTfiJAMNHyFjAB');
   }
 
   public function testHoudiniSepaOneoff() {
@@ -99,8 +101,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $get_contrib = civicrm_api3('Contribution', 'get', ['trxn_id' => 'cc_100001', 'sequential' => 1]);
-    $this->assertEquals($get_contrib['count'], 1);
+    $this->assertContribution('cc_100001');
     $get_mandate = civicrm_api3('SepaMandate', 'get', ['iban' => 'PL83101010230000261395100000']);
     $this->assertEquals($get_mandate['count'], 1);
   }

@@ -12,7 +12,7 @@ class CRM_WeAct_Settings {
     //Mapping of country code => country id
     $this->countryIds = $this->fetchCountryIds();
     $this->financialTypeId = 1; //FIXME
-    $this->paymentInstrumentId = 2; //FIXME
+    $this->paymentInstrumentIds = $this->fetchPaymentInstruments();
     $this->paymentProcessorIds = $this->fetchPaymentProcessors();
     $this->customFields = $this->fetchCustomFields();
   }
@@ -41,6 +41,22 @@ class CRM_WeAct_Settings {
     return $countries;
   }
 
+  protected function fetchPaymentInstruments() {
+    //Identification is based on label because the names were already misleading in prod when this code was written
+    return [
+      'paypal' => civicrm_api3('OptionValue', 'getsingle', [
+        'return' => ['value'],
+        'label' => 'Paypal',
+        'option_group_id' => 'payment_instrument'
+      ])['value'],
+      'card' => civicrm_api3('OptionValue', 'getsingle', [
+        'return' => ['value'],
+        'label' => 'Stripe',
+        'option_group_id' => 'payment_instrument'
+      ])['value']
+    ];
+  }
+
   protected function fetchPaymentProcessors() {
     return [
       'houdini-stripe' => civicrm_api3('PaymentProcessor', 'getsingle', [
@@ -55,7 +71,7 @@ class CRM_WeAct_Settings {
       ])['id'],
       'proca-stripe' => civicrm_api3('PaymentProcessor', 'getsingle', [
         'return' => ["id"],
-        'name' => "Proca-stripe",
+        'name' => "Credit Card",
         'is_test' => 0,
       ])['id'],
       'proca-sepa' => civicrm_api3('PaymentProcessor', 'getsingle', [

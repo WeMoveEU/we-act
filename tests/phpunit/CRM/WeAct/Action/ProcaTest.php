@@ -36,18 +36,21 @@ JSON;
   protected static function stripePayload($frequency) {
     $subscription = "";
     if ($frequency != "one_off") {
-      $subscription = ', "subscriptionId": "sub_scription"';
+      $subscription = ', "subscriptionId": "sub_scription", "customerId": "cus_TomEr"';
     }
     return <<<JSON
     {
+        "paymentConfirm": {
+            "payment_method_types": ["card"]
+        },
         "paymentIntent": {
             "response": {
                 "id": "pi_somegarbage",
                 "customer": "cus_someone"
             }
-            $subscription
         },
         "provider": "stripe"
+        $subscription
     }
 JSON;
   }

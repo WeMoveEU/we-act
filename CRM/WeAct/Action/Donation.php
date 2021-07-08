@@ -55,6 +55,21 @@ class CRM_WeAct_Action_Donation {
         $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ]);
     } else {
+      $processor_id = $this->settings->paymentProcessorIds[$this->processor];
+
+      if ($this->processor == 'proca-stripe') {
+        //Stripe webhook requires a link customer<->contact to process events, so we create it here if needed
+        $customer_params = [
+          'customer_id' => $this->providerDonorId,
+          'contact_id' => $contact_id,
+          'processor_id' => $processor_id
+        ];
+        $customer = civicrm_api3('StripeCustomer', 'get', $customer_params);
+        if ($customer['count'] == 0) {
+          civicrm_api3('StripeCustomer', 'create', $customer_params);
+        }
+      }
+
       $params = [
         'sequential' => 1,
         'contact_id' => $contact_id,
@@ -67,8 +82,8 @@ class CRM_WeAct_Action_Donation {
         'trxn_id' => $this->donationId,
         'contribution_status_id' => 'In Progress',
         'financial_type_id' => $this->settings->financialTypeId,
-        'payment_instrument_id' => $this->settings->paymentInstrumentId,
-        'payment_processor_id' => $this->settings->paymentProcessorIds[$this->processor],
+        'payment_instrument_id' => $this->settings->paymentInstrumentIds[$this->paymentMethod],
+        'payment_processor_id' => $processor_id,
         'campaign_id' => $campaign_id,
         $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
@@ -98,7 +113,7 @@ class CRM_WeAct_Action_Donation {
         'contact_id' => $contact_id,
         'contribution_campaign_id' => $campaign_id,
         'financial_type_id' => $this->settings->financialTypeId,
-        'payment_instrument_id' => $this->settings->paymentInstrumentId,
+        'payment_instrument_id' => $this->settings->paymentInstrumentIds[$this->paymentMethod],
         'payment_processor_id' => $this->settings->paymentProcessorIds[$this->processor],
         'receive_date' => $this->createdAt,
         'total_amount' => $this->amount,
