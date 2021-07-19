@@ -62,9 +62,26 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       'description' => "pl_PL:",
       'name' => "Dzień dobry",
     ]);
+
+    $contact_result = civicrm_api3('Contact', 'create', [
+      'contact_type' => 'Individual', 'first_name' => 'Transient', 'last_name' => 'Contact'
+    ]);
+    $this->contactId = $contact_result['id'];
+
+    $campaign_result = civicrm_api3('Campaign', 'create', [
+      'campaign_type_id' => 1, 'title' => 'Transient campaign', 'external_identifier' => 42
+    ]);
+    $this->campaignId = $campaign_result['id'];
   }
 
   public function assertConsentRequestSent() {
     $this->assertGreaterThan(0, count($this->consentRequests));
   }
+
+  public function assertContributionExists($filter) {
+    $get_payment = civicrm_api3('Contribution', 'get', ['sequential' => 1] + $filter);
+    $this->assertEquals($get_payment['count'], 1);
+    return $get_payment['values'][0];
+  }
+
 }
