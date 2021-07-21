@@ -22,7 +22,7 @@ use Civi\Test\TransactionalInterface;
 abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   public function setUpHeadless() {
-    $build_version = 7;  //Increase this value whenever modifying the callback so that the env builder detects the change
+    $build_version = 8;  //Increase this value whenever modifying the callback so that the env builder detects the change
     return \Civi\Test::headless()
       ->install(['eu.wemove.gidipirus', 'eu.wemove.contributm', 'org.project60.sepa', 'mjwshared', 'com.drastikbydesign.stripe'])
       ->callback(function($ctx) {
@@ -35,6 +35,10 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
         civicrm_api3('OptionValue', 'create', ['label' => 'Stripe', 'option_group_id' => 'payment_instrument']);
         //Sepa extension creates a Dummy creditor on install, but it doesn't have a type
         civicrm_api3('Setting', 'create', ['batching_default_creditor' => 1]);
+
+        civicrm_api3('OptionValue', 'create', ['option_group_id' => "email_greeting", 'description' => "pl_PL:", 'name' => "Dzień dobry"]);
+        //The API does not seem to like receiving an array
+        Civi::settings()->set('country_lang_mapping', ['PL' => 'pl_PL']);
       }, $build_version)
       ->sql("UPDATE civicrm_sdd_creditor SET creditor_type = 'SEPA' WHERE creditor_type IS NULL")
       ->installMe(__DIR__)
@@ -56,13 +60,6 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
 			}
 		);
 
-    Civi::settings()->set('country_lang_mapping', ['PL' => 'pl_PL']);
-    civicrm_api3('OptionValue', 'create', [
-      'option_group_id' => "email_greeting",
-      'description' => "pl_PL:",
-      'name' => "Dzień dobry",
-    ]);
-
     $contact_result = civicrm_api3('Contact', 'create', [
       'contact_type' => 'Individual', 'first_name' => 'Transient', 'last_name' => 'Contact'
     ]);
@@ -78,10 +75,10 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     $this->assertGreaterThan(0, count($this->consentRequests));
   }
 
-  public function assertContributionExists($filter) {
-    $get_payment = civicrm_api3('Contribution', 'get', ['sequential' => 1] + $filter);
-    $this->assertEquals($get_payment['count'], 1);
-    return $get_payment['values'][0];
+  public function assertExists($entity, $filter) {
+    $get_entity = civicrm_api3($entity, 'get', ['sequential' => 1] + $filter);
+    $this->assertEquals(1, $get_entity['count']);
+    return $get_entity['values'][0];
   }
 
 }

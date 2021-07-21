@@ -19,7 +19,7 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
     $page = new CRM_WeAct_Page_Paypal();
     $page->processNotification(json_decode($this->recurringPayment()));
 
-    $this->assertContributionExists(['trxn_id' => '6M2390528T390274B', 'receive_date' => '2021-07-20 16:05:20']);
+    $this->assertExists('Contribution', ['trxn_id' => '6M2390528T390274B', 'receive_date' => '2021-07-20 16:05:20']);
   }
 
   protected function recurringPayment() {

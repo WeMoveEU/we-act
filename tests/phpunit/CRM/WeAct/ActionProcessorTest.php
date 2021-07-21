@@ -35,7 +35,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertContributionExists(['trxn_id' => 'pi_somegarbage']);
+    $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage']);
   }
 
   public function testProcaStripeRecur() {
@@ -44,11 +44,9 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => $sub_id]);
-    $this->assertEquals($get_recur['count'], 1);
-    $this->assertContributionExists(['trxn_id' => 'pi_somegarbage']);
-    $get_customer = civicrm_api3('StripeCustomer', 'get', ['contact_id' => $this->contactId]);
-    $this->assertEquals($get_customer['count'], 1);
+    $this->assertExists('ContributionRecur', ['trxn_id' => $sub_id]);
+    $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage']);
+    $this->assertExists('StripeCustomer', ['contact_id' => $this->contactId]);
   }
 
   public function testProcaSepaOneoff() {
@@ -56,9 +54,8 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertContributionExists(['trxn_id' => 'proca_5']);
-    $get_mandate = civicrm_api3('SepaMandate', 'get', ['iban' => 'PL83101010230000261395100000']);
-    $this->assertEquals($get_mandate['count'], 1);
+    $this->assertExists('Contribution', ['trxn_id' => 'proca_5']);
+    $this->assertExists('SepaMandate', ['iban' => 'PL83101010230000261395100000']);
   }
 
   public function testProcaPaypalOneoff() {
@@ -66,7 +63,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertContributionExists(['trxn_id' => 'S0M31D']);
+    $this->assertExists('Contribution', ['trxn_id' => 'S0M31D']);
   }
 
   public function testProcaPaypalRecur() {
@@ -74,9 +71,8 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => "I-SUBSCR1PT10N"]);
-    $this->assertEquals($get_recur['count'], 1);
-    $this->assertContributionExists(['trxn_id' => 'S0M31D']);
+    $this->assertExists('ContributionRecur', ['trxn_id' => "I-SUBSCR1PT10N"]);
+    $this->assertExists('Contribution', ['trxn_id' => 'S0M31D']);
   }
 
   public function testHoudiniStripeRecur() {
@@ -84,9 +80,8 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => 'cc_1']);
-    $this->assertEquals($get_recur['count'], 1);
-    $this->assertContributionExists(['trxn_id' => 'ch_1NHwmdLnnERTfiJAMNHyFjAB']);
+    $this->assertExists('ContributionRecur', ['trxn_id' => 'cc_1']);
+    $this->assertExists('Contribution', ['trxn_id' => 'ch_1NHwmdLnnERTfiJAMNHyFjAB']);
   }
 
   public function testHoudiniSepaOneoff() {
@@ -94,9 +89,8 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertContributionExists(['trxn_id' => 'cc_100001']);
-    $get_mandate = civicrm_api3('SepaMandate', 'get', ['iban' => 'PL83101010230000261395100000']);
-    $this->assertEquals($get_mandate['count'], 1);
+    $this->assertExists('Contribution', ['trxn_id' => 'cc_100001']);
+    $this->assertExists('SepaMandate', ['iban' => 'PL83101010230000261395100000']);
   }
 
   public function testHoudiniSepaRecur() {
@@ -104,11 +98,9 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $get_recur = civicrm_api3('ContributionRecur', 'get', ['trxn_id' => 'ccr_100001', 'sequential' => 1]);
-    $this->assertEquals($get_recur['count'], 1);
-    $this->assertEquals($get_recur['values'][0]['cycle_day'], 21); //Created on 13th
-    $get_mandate = civicrm_api3('SepaMandate', 'get', ['iban' => 'PL83101010230000261395100000']);
-    $this->assertEquals($get_mandate['count'], 1);
+    //Created on 13th means the cycle day should be 21st
+    $this->assertExists('ContributionRecur', ['trxn_id' => 'ccr_100001', 'cycle_day' => 21]);
+    $this->assertExists('SepaMandate', ['iban' => 'PL83101010230000261395100000']);
   }
 
 }
