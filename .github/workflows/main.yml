@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: WeMoveEU/org.project60.sepa
-          ref: 1.4.patched
+          ref: 1.5.0.patched
           path: drupal/sites/all/modules/civicrm/ext/sepa
       - uses: sudosubin/git-clone-action@v1.0.1
         with:
