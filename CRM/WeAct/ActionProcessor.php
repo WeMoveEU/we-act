@@ -8,9 +8,9 @@ class CRM_WeAct_ActionProcessor {
   }
 
   public function process(CRM_WeAct_Action $action) {
-    $campaign = $this->campaignCache->getFromAction($action);
-    $contact_id = $this->getOrCreateContact($action, $campaign['id']);
     if ($action->actionType == 'donate') {
+      $campaign = $this->campaignCache->getFromAction($action);
+      $contact_id = $this->getOrCreateContact($action, $campaign['id']);
       $this->processDonation($action, $campaign['id'], $contact_id);
     }
   }
