@@ -17,10 +17,6 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
 
   public function setUp() : void {
     parent::setUp();
-    $campaign_result = civicrm_api3('Campaign', 'create', [
-      'campaign_type_id' => 1, 'title' => 'Transient campaign', 'external_identifier' => 42
-    ]);
-    $this->campaignId = $campaign_result['id'];
   }
 
   public function buildCache($guzzleClient) {
