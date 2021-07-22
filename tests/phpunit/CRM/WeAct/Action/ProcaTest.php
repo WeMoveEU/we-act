@@ -109,8 +109,12 @@ JSON;
     ];
   }
 
+  public static function speakoutTrackingNoUtm($speakout_id) {
+    return ['speakout_campaign' => "$speakout_id", 'utm' => NULL];
+  }
+
   protected static function eventJson($donation, $fields, $tracking) {
-    if ($tracking && isset($tracking['utm'])) {
+    if ($tracking && array_key_exists('utm', $tracking)) {
       $trackingJson = ', "tracking": ' . json_encode($tracking['utm']);
     } else {
       $trackingJson = '';

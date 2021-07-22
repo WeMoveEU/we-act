@@ -75,6 +75,13 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     $this->assertEquals(666, $campaign['external_identifier']);
   }
 
+  public function testProcaCampaignFromSpeakoutExistingWithoutTracking() {
+    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(CRM_WeAct_Action_ProcaTest::speakoutTrackingNoUtm(42));
+    $camp_cache = $this->buildCache(NULL);
+    $campaign = $camp_cache->getFromAction($action);
+    $this->assertEquals($this->campaignId, $campaign['id']);
+  }
+
   public function testHoudiniCampaignNew() {
     $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
     $camp_cache = $this->buildCache(NULL);
