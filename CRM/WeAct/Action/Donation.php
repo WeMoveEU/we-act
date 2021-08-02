@@ -75,7 +75,7 @@ class CRM_WeAct_Action_Donation {
         'contact_id' => $contact_id,
         'amount' => $this->amount,
         'currency' => $this->currency,
-        'frequency_unit' => 'month',
+        'frequency_unit' => $this->frequency,
         'frequency_interval' => 1,
         'start_date' => $this->createdAt,
         'create_date' => $this->createdAt,

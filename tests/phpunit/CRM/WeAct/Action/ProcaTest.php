@@ -190,9 +190,9 @@ JSON;
     )));
   }
 
-  public static function recurringStripeAction($tracking = NULL) {
+  public static function recurringStripeAction($frequency = 'monthly', $tracking = NULL) {
     return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("monthly", self::stripePayload("monthly")),
+      self::donationJson($frequency, self::stripePayload($frequency)),
       self::trackingFields($tracking),
       $tracking
     )));

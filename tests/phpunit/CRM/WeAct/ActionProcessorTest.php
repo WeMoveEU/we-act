@@ -22,6 +22,10 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     parent::setUp();
   }
 
+  public function frequencyProvider() {
+    return [['monthly', 'month'], ['weekly', 'week'], ['daily', 'day']];
+  }
+
   public function testHoudiniContactNew() {
     $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
@@ -38,13 +42,16 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage']);
   }
 
-  public function testProcaStripeRecur() {
+  /**
+   * @dataProvider frequencyProvider
+   */
+  public function testProcaStripeRecur($frequency, $crmFrequency) {
     $sub_id = 'sub_scription';
-    $action = CRM_WeAct_Action_ProcaTest::recurringStripeAction();
+    $action = CRM_WeAct_Action_ProcaTest::recurringStripeAction($frequency);
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertExists('ContributionRecur', ['trxn_id' => $sub_id]);
+    $this->assertExists('ContributionRecur', ['trxn_id' => $sub_id, 'frequency_unit' => $crmFrequency]);
     $this->assertExists('Contribution', ['trxn_id' => 'in_thevoice']);
     $this->assertExists('StripeCustomer', ['contact_id' => $this->contactId]);
   }

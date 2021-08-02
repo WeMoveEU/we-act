@@ -38,19 +38,15 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
 
   protected function buildDonation($action_id, $json_action) {
     $statusMap = ['succeeded' => 'Completed', 'failed' => 'Failed'];
+    $frequencyMap = ['one_off' => 'one-off', 'monthly' => 'month', 'weekly' => 'week', 'daily' => 'day'];
+
     $donation = new CRM_WeAct_Action_Donation();
     $donation->createdAt = $json_action->createdAt;
     $donation->status = 'Completed'; //FIXME $statusMap[$json_action->fields->status];
     $donation->amount = intval($json_action->donation->amount) / 100;
     $donation->fee = 0;
     $donation->currency = strtoupper($json_action->donation->currency);
-
-    if ($json_action->donation->frequencyUnit == 'one_off') {
-      $donation->frequency = 'one-off';
-    }
-    else {
-      $donation->frequency = 'monthly';
-    }
+    $donation->frequency = $frequencyMap[$json_action->donation->frequencyUnit];
 
     $provider = $json_action->donation->payload->provider;
     $donation->processor = $this->externalSystem . '-' . $provider;

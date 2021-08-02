@@ -49,7 +49,7 @@ class CRM_WeAct_Action_Houdini extends CRM_WeAct_Action {
       $donation->donationId = $json_donation->transaction_id;
     }
     else {
-      $donation->frequency = 'monthly';
+      $donation->frequency = 'month';
       $donation->donationId = $json_donation->recurring_id;
     }
     $donation->paymentId = $json_donation->transaction_id;
