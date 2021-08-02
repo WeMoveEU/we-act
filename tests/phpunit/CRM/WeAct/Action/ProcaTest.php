@@ -35,8 +35,10 @@ JSON;
 
   protected static function stripePayload($frequency) {
     $subscription = "";
+    $latest_invoice = "";
     if ($frequency != "one_off") {
       $subscription = ', "subscriptionId": "sub_scription", "customerId": "cus_TomEr"';
+      $latest_invoice = ', "latest_invoice": {"id": "in_thevoice"}';
     }
     return <<<JSON
     {
@@ -47,6 +49,7 @@ JSON;
             "response": {
                 "id": "pi_somegarbage",
                 "customer": "cus_someone"
+                $latest_invoice
             }
         },
         "provider": "stripe"

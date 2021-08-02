@@ -45,7 +45,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
     $this->assertExists('ContributionRecur', ['trxn_id' => $sub_id]);
-    $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage']);
+    $this->assertExists('Contribution', ['trxn_id' => 'in_thevoice']);
     $this->assertExists('StripeCustomer', ['contact_id' => $this->contactId]);
   }
 
