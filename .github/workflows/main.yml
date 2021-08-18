@@ -19,40 +19,14 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-18.04
-    env:
-      php_version: '7.3'
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Set system timezone to Central Europe
-        uses: szenius/set-timezone@v1.0
-        with:
-          timezoneLinux: Europe/Berlin
-  
-      - name: Set PHP version
-        run: sudo ln -sf /usr/bin/php${php_version} /usr/bin/php
+      - name: Install wemove-civicrm
+        uses: WeMoveEU/wemove-civicrm@gh-action
 
-      - name: Disable sendmail
-        run: sudo ln -sf /bin/true /usr/sbin/sendmail
-
-      - name: Install dependencies & tools
-        run: |
-          sudo apt install php${php_version}-bcmath php${php_version}-calendar php${php_version}-ctype php${php_version}-curl php${php_version}-dom php${php_version}-exif php${php_version}-fileinfo php${php_version}-ftp php${php_version}-gd php${php_version}-gettext php${php_version}-iconv php${php_version}-igbinary php${php_version}-imagick php${php_version}-intl php${php_version}-mbstring php${php_version}-mysqli php${php_version}-mysqlnd php${php_version}-opcache php${php_version}-pdo php${php_version}-phar php${php_version}-posix php${php_version}-readline php${php_version}-redis php${php_version}-shmop php${php_version}-simplexml php${php_version}-soap php${php_version}-sockets php${php_version}-sysvmsg php${php_version}-sysvsem php${php_version}-sysvshm php${php_version}-tokenizer  php${php_version}-xdebug php${php_version}-xml php${php_version}-xmlreader php${php_version}-xmlwriter php${php_version}-xsl php${php_version}-zip
-          sudo curl -LsS https://github.com/drush-ops/drush/releases/download/8.4.5/drush.phar -o /usr/local/bin/drush
-          sudo chmod +x /usr/local/bin/drush
-          sudo curl -LsS https://download.civicrm.org/cv/cv.phar -o /usr/local/bin/cv
-          sudo chmod +x /usr/local/bin/cv
-
-      - name: Download Drupal
-        run: drush dl drupal-7.80 --destination=./ --drupal-project-rename
-
-      - name: Checkout CiviCRM & required extensions
+      - name: Checkout required extensions
         uses: actions/checkout@v2
-        with:
-          repository: WeMoveEU/wemove-civicrm
-          ref: civicrm-5.35.1.patched
-          path: drupal/sites/all/modules/civicrm
-      - uses: actions/checkout@v2
         with:
           repository: WeMoveEU/eu.wemove.gidipirus
           path: drupal/sites/all/modules/civicrm/ext/gidipirus
@@ -81,16 +55,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: drupal/sites/all/modules/civicrm/ext/we-act
-
-      - name: Install DB settings & schemas
-        run: |
-          sudo systemctl start mysql.service
-          mysql -u root -proot -e "CREATE DATABASE drupal;"
-          chmod u+w .
-          drush site-install -y --db-url=mysql://root:root@localhost/drupal
-          chmod u+w .
-          cv core:install --cms-base-url=http://localhost/
-        working-directory: drupal/sites/default
 
       - name: Run unit tests
         run: phpunit
