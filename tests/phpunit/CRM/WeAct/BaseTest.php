@@ -22,26 +22,13 @@ use Civi\Test\TransactionalInterface;
 abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   public function setUpHeadless() {
-    $build_version = 8;  //Increase this value whenever modifying the callback so that the env builder detects the change
     return \Civi\Test::headless()
       ->install(['eu.wemove.gidipirus', 'eu.wemove.contributm', 'org.project60.sepa', 'mjwshared', 'com.drastikbydesign.stripe'])
-      ->callback(function($ctx) {
-        civicrm_api3('PaymentProcessor', 'create', ['name' => 'Credit Card', 'payment_processor_type_id' => 'Dummy']);
-        civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-card', 'payment_processor_type_id' => 'Dummy']);
-        civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-sepa', 'payment_processor_type_id' => 'Dummy']);
-        civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-sepa', 'payment_processor_type_id' => 'Dummy']);
-        civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-paypal', 'payment_processor_type_id' => 'Dummy']);
-        civicrm_api3('OptionValue', 'create', ['label' => 'Paypal', 'option_group_id' => 'payment_instrument']);
-        civicrm_api3('OptionValue', 'create', ['label' => 'Stripe', 'option_group_id' => 'payment_instrument']);
-        //Sepa extension creates a Dummy creditor on install, but it doesn't have a type
-        civicrm_api3('Setting', 'create', ['batching_default_creditor' => 1]);
-
-        civicrm_api3('OptionValue', 'create', ['option_group_id' => "email_greeting", 'description' => "pl_PL:", 'name' => "Dzień dobry"]);
-        //The API does not seem to like receiving an array
-        Civi::settings()->set('country_lang_mapping', ['PL' => 'pl_PL']);
-      }, $build_version)
       ->sql("UPDATE civicrm_sdd_creditor SET creditor_type = 'SEPA' WHERE creditor_type IS NULL")
       ->installMe(__DIR__)
+      ->callback(function($ctx) {
+        CRM_WeAct_Upgrader::setRequiredSettingsForTests($ctx);
+      }, 8)
       ->apply();
   }
 
