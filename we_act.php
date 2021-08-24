@@ -143,10 +143,42 @@ function we_act_civicrm_themes(&$themes) {
   _we_act_civix_civicrm_themes($themes);
 }
 
+/**
+ * Do NOT use $objectRef unless you modify the custom hook below accordingly
+ */
 function we_act_civicrm_post($op, $objectName, $objectId, &$objectRef) {
   if ($objectName == 'Campaign' && $op == 'edit') {
     $entry = civicrm_api3('Campaign', 'getsingle', ['id' => $objectId]);
     $cache = new CRM_WeAct_CampaignCache(Civi::cache(), NULL);
     $cache->setCiviCampaign($entry);
   }
+}
+
+/**
+ * The post hook is called *before* the custom fields of the campaign
+ * get updated, therefore the cache update does not get new custom fields value.
+ * Hence this hook on custom fields updates (which means the cache is updated twice
+ * if custom fields are modified), that delegates to the post hook.
+ * (it assumes that the last parameter is not used!)
+ */
+function we_act_civicrm_custom($op, $groupId, $entityId, &$params) {
+  static $speakout_group_id = NULL;
+  if ($speakout_group_id === NULL) {
+    $speakout_group_id = _we_act_speakout_integration_group();
+  }
+  //No check on $op because its value is actually wrong: it can be create when the operation was an edit...
+  if ($speakout_group_id == $groupId) {
+    we_act_civicrm_post('edit', 'Campaign', $entityId, $params);
+  }
+}
+
+function _we_act_speakout_integration_group() {
+  $entities = ['Campaign'];
+  $groups = CRM_Core_BAO_CustomGroup::getGroupDetail(NULL, NULL, $entities);
+  foreach ($groups as $group_id => $group) {
+    if ($group['name'] = 'speakout_integration') {
+      return $group_id;
+    }
+  }
+  return 0;
 }

@@ -56,9 +56,15 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     $camp_cache = $this->buildCache(NULL);
     $campaign = $camp_cache->getFromAction($action);
     $this->assertEquals($campaign['title'], 'Transient campaign');
-    civicrm_api3('Campaign', 'create', ['id' => $this->campaignId, 'title' => 'Updated transient campaign']);
+
+    civicrm_api3('Campaign', 'create', [
+      'id' => $this->campaignId,
+      'title' => 'Updated transient campaign',
+      $camp_cache->settings->customFields['campaign_slug'] => 'updated-transient-campaign',
+    ]);
     $campaign = $camp_cache->getFromAction($action);
     $this->assertEquals('Updated transient campaign', $campaign['title']);
+    $this->assertEquals('updated-transient-campaign', $campaign[$camp_cache->settings->customFields['campaign_slug']]);
   }
 
   public function testProcaCampaignFromSpeakoutNew() {

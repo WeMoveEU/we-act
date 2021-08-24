@@ -52,8 +52,12 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     ]);
     $this->contactId = $contact_result['id'];
 
+    $settings = CRM_WeAct_Settings::instance();
     $campaign_result = civicrm_api3('Campaign', 'create', [
-      'campaign_type_id' => 1, 'title' => 'Transient campaign', 'external_identifier' => 42
+      'campaign_type_id' => 1,
+      'title' => 'Transient campaign',
+      'external_identifier' => 42,
+      $settings->customFields['campaign_slug'] => 'transient-campaign',
     ]);
     $this->campaignId = $campaign_result['id'];
   }
