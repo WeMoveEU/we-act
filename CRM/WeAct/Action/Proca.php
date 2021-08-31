@@ -47,6 +47,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $donation->fee = 0;
     $donation->currency = strtoupper($json_action->donation->currency);
     $donation->frequency = $frequencyMap[$json_action->donation->frequencyUnit];
+    $donation->isTest = FALSE;
 
     $provider = $json_action->donation->payload->provider;
     $donation->processor = $this->externalSystem . '-' . $provider;
@@ -58,6 +59,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
       $donation->paymentMethod = 'sepa';
     } else if ($provider == 'stripe') {
       $donation->paymentMethod = $json_action->donation->payload->paymentConfirm->payment_method_types[0];
+      $donation->isTest = !$json_action->donation->payload->paymentIntent->response->livemode;
       if ($donation->frequency == 'one-off') {
         $donation->paymentId = $json_action->donation->payload->paymentIntent->response->id;
         $donation->donationId = $donation->paymentId;

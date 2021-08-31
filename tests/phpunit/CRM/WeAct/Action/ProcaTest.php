@@ -33,7 +33,7 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
 JSON;
   }
 
-  protected static function stripePayload($frequency) {
+  protected static function stripePayload($frequency, $livemode = "true") {
     $subscription = "";
     $latest_invoice = "";
     if ($frequency != "one_off") {
@@ -48,6 +48,7 @@ JSON;
         "paymentIntent": {
             "response": {
                 "id": "pi_somegarbage",
+                "livemode": $livemode,
                 "customer": "cus_someone"
                 $latest_invoice
             }
@@ -174,9 +175,9 @@ JSON;
     )));
   }
 
-  public static function oneoffStripeAction($tracking = NULL) {
+  public static function oneoffStripeAction($tracking = NULL, $is_test = FALSE) {
     return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("one_off", self::stripePayload("one_off")),
+      self::donationJson("one_off", self::stripePayload("one_off", $is_test ? "false" : "true")),
       self::trackingFields($tracking),
       $tracking
     )));

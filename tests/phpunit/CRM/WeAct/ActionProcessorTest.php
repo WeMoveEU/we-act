@@ -26,6 +26,10 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     return [['monthly', 'month'], ['weekly', 'week'], ['daily', 'day']];
   }
 
+  public function isTestProvider() {
+    return [[0], [1]];
+  }
+
   public function testHoudiniContactNew() {
     $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
@@ -34,12 +38,15 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertConsentRequestSent();
   }
 
-  public function testProcaStripeOneoff() {
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction();
+  /**
+   * @dataProvider isTestProvider
+   */
+  public function testProcaStripeOneoff($is_test) {
+    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(NULL, $is_test);
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage']);
+    $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage', 'is_test' => $is_test]);
   }
 
   /**

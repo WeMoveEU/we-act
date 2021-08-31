@@ -36,6 +36,7 @@ class CRM_WeAct_Action_Houdini extends CRM_WeAct_Action {
     $donation->amount = $json_donation->amount;
     $donation->fee = $json_donation->amount_charged;
     $donation->currency = strtoupper($json_donation->currency);
+    $donation->isTest = FALSE;
     $donation->processor = $this->externalSystem . '-' . $json_donation->payment_processor;
     if ($json_donation->payment_processor == 'sepa') {
       $donation->iban = $json_donation->iban;
