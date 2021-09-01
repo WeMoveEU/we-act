@@ -18,15 +18,22 @@ class CRM_WeAct_Page_Paypal extends CRM_Core_Page {
 
   public function processNotification($json_body) {
     if ($this->isRecurringPayment($json_body)) {
-      $contrib_recur = civicrm_api3('ContributionRecur', 'getsingle', ['trxn_id' => $json_body->resource->billing_agreement_id]);
-      $repeat_params = [
-        'contribution_recur_id' => $contrib_recur['id'],
-        'contribution_status_id' => $this->civiStatus[$json_body->resource->state],
-        //Paypal sends this date in UTC in ISO8601 format, which civi understands fine
-        'receive_date' => $json_body->resource->create_time,
-        'trxn_id' => $json_body->resource->id,
-      ];
-      civicrm_api3('Contribution', 'repeattransaction', $repeat_params);
+      try {
+        $contrib_recur = civicrm_api3('ContributionRecur', 'getsingle', ['trxn_id' => $json_body->resource->billing_agreement_id]);
+      } catch(CiviCRM_API3_Exception $ex) {
+        $contrib_recur = NULL;
+        CRM_Core_Error::debug_log_message("Could not find any recurring contribution with transaction id {$json_body->resource->billing_agreement_id}, skipping.");
+      }
+      if ($contrib_recur) {
+        $repeat_params = [
+          'contribution_recur_id' => $contrib_recur['id'],
+          'contribution_status_id' => $this->civiStatus[$json_body->resource->state],
+          //Paypal sends this date in UTC in ISO8601 format, which civi understands fine
+          'receive_date' => $json_body->resource->create_time,
+          'trxn_id' => $json_body->resource->id,
+        ];
+        civicrm_api3('Contribution', 'repeattransaction', $repeat_params);
+      }
     }
   }
 
