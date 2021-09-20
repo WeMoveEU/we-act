@@ -15,6 +15,11 @@ class CRM_WeAct_CampaignCache {
   public function getFromAction(CRM_WeAct_Action $action) {
     $campaign = NULL;
 
+    CRM_Core_Error::debug_log_message(
+      "getFromAction called - page name {$action->actionPageName}, " . 
+      "external system {$action->externalSystem}."
+    );
+
     // If the action seems to come from a mailing (according to utm), use the campaign of the mailing
     if ($action->utm && substr($action->utm['source'], 0, 9) == 'civimail-') {
       $campaign = $this->getFromMailingSource($action->utm['source']);
@@ -84,9 +89,13 @@ class CRM_WeAct_CampaignCache {
   public function getOrCreateSpeakout($speakout_url, $speakout_id) {
     $entry = $this->getExternalCampaign('speakout', $speakout_id);
     if (!$entry) {
+      CRM_Core_Error::debug_log_message("getExternalCampaign returned {$entry} for {$speakout_url} {$speakout_id}");
       $urlments = parse_url($speakout_url);
       $speakout_domain = $urlments['host'];
       $this->createSpeakoutCampaign($speakout_domain, $speakout_id);
+      // call getExternalCampaign so that the cache gets filled - maybe 
+      // that could happen in createSpeakoutCampaign directly? the create 
+      // call returns the new entity in "values"
       $entry = $this->getExternalCampaign('speakout', $speakout_id);
     }
     return $entry;
@@ -96,17 +105,21 @@ class CRM_WeAct_CampaignCache {
     $key = "WeAct:ActionPage:$external_system:$external_id";
     $campaign_id = $this->cache->get($key);
     if ($campaign_id === NULL) {
+      CRM_Core_Error::debug_log_message("CACHE MISS: $key, fetching campaign from Civi");
       $external_identifier = $this->externalIdentifier($external_system, $external_id);
       $get_params = ['sequential' => 1, 'external_identifier' => $external_identifier];
       $get_result = civicrm_api3('Campaign', 'get', $get_params);
       if ($get_result['count'] == 1) {
         $campaign = $get_result['values'][0];
+        CRM_Core_Error::debug_log_message("GET campaign succeeded: $key, found {$campaign['id']}");
         $this->cache->set($key, $campaign['id']);
       } else {
+        CRM_Core_Error::debug_log_message("GET campaign failed: $key, expected 1 found {$get_result['count']}");
         $campaign = NULL;
       }
     } else {
       $campaign = $this->getCiviCampaign($campaign_id);
+      CRM_Core_Error::debug_log_message("CACHE HIT $key, returning {$campaign} from cache");
     }
     return $campaign;
   }
@@ -137,7 +150,11 @@ class CRM_WeAct_CampaignCache {
   protected function createSpeakoutCampaign($speakout_domain, $speakout_id) {
     $url = "https://$speakout_domain/api/v1/campaigns/$speakout_id";
     $user = CIVICRM_SPEAKOUT_USERS[$speakout_domain];
+
+    CRM_Core_Error::debug_log_message("Fetching Speakout campaign $url");
     $externalCampaign = json_decode($this->getRemoteContent($url, $user));
+
+    CRM_Core_Error::debug_log_message("FETCH'd {$externalCampaign}");
 
     $locale = $externalCampaign->locale;
     $slug = ($externalCampaign->slug != '' ? $externalCampaign->slug : 'speakout_'.$externalCampaign->id);
@@ -170,22 +187,30 @@ class CRM_WeAct_CampaignCache {
       $fields['campaign_postaction_body'] => $externalCampaign->thankyou_body,
     );
     $create_result = civicrm_api3('Campaign', 'create', $params);
+    $created_id = $create_result['values'][0]['id'];
 
     // This is done in a separate step even if the parent campaign is defined,
     // to avoid circular-reference drama (getCampaignByExternalId may call this function)
     if ($externalCampaign->parent_campaign_id) {
+      CRM_Core_Error::debug_log_message(
+        "Have a parent_campaign_id, calling getOrCreateSpeakout " . 
+        "with created id {$created_id} and parent id {$externalCampaign->parent_campaign_id}"
+      );
       // Not the correct URL, but assuming that only the host part matters
       $parent = $this->getOrCreateSpeakout($url, $externalCampaign->parent_campaign_id);
+      CRM_Core_Error::debug_log_message( "Found parent campaign {$parent['id']}");
       $parent_params = [
-        'id' => $create_result['values'][0]['id'],
+        'id' => $created_id,
         'parent_id'=> $parent['id'],
       ];
     } else {
+      CRM_Core_Error::debug_log_message( "I am my own parent, $created_id");
       $parent_params = [
-        'id' => $create_result['values'][0]['id'],
-        'parent_id'=> $create_result['values'][0]['id'],
+        'id' => $created_id,
+        'parent_id'=> $created_id,
       ];
     }
+    CRM_Core_Error("Calling Campaign.create with campaign {$parent_params['id']}, parent {$parent_params['parent_id']}");
     civicrm_api3('Campaign', 'create', $parent_params);
   }
 
