@@ -210,7 +210,9 @@ class CRM_WeAct_CampaignCache {
         'parent_id'=> $created_id,
       ];
     }
-    CRM_Core_Error("Calling Campaign.create with campaign {$parent_params['id']}, parent {$parent_params['parent_id']}");
+    CRM_Core_Error::debug_log_message(
+      "Calling Campaign.create with campaign {$parent_params['id']}, parent {$parent_params['parent_id']}"
+    );
     civicrm_api3('Campaign', 'create', $parent_params);
   }
 
