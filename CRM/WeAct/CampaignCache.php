@@ -119,7 +119,7 @@ class CRM_WeAct_CampaignCache {
       }
     } else {
       $campaign = $this->getCiviCampaign($campaign_id);
-      CRM_Core_Error::debug_log_message("CACHE HIT $key, returning {$campaign} from cache");
+      CRM_Core_Error::debug_log_message("CACHE HIT $key, returning {$campaign_id} from cache");
     }
     return $campaign;
   }
@@ -154,7 +154,7 @@ class CRM_WeAct_CampaignCache {
     CRM_Core_Error::debug_log_message("Fetching Speakout campaign $url");
     $externalCampaign = json_decode($this->getRemoteContent($url, $user));
 
-    CRM_Core_Error::debug_log_message("FETCH'd {$externalCampaign}");
+    CRM_Core_Error::debug_log_message("FETCH'd {$externalCampaign->id}");
 
     $locale = $externalCampaign->locale;
     $slug = ($externalCampaign->slug != '' ? $externalCampaign->slug : 'speakout_'.$externalCampaign->id);
