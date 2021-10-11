@@ -9,7 +9,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $this->actionPageId = $json_msg->actionPageId;
     $this->actionPageName = $json_msg->actionPage->name;
     $this->language = $this->determineLanguage($json_msg->actionPage->locale);
-    $this->contact = $this->buildContact(json_decode($json_msg->contact->payload));
+    $this->contact = $this->buildContact($json_msg->contact);
     $this->details = $this->buildDonation($json_msg->actionId, $json_msg->action);
 
     $this->locationId = @$json_msg->action->fields->speakoutCampaign;
