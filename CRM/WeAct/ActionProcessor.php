@@ -31,8 +31,11 @@ class CRM_WeAct_ActionProcessor {
       $contact = $action->contact->getAndUpdate($contact_id);
     }
 
+    Civi::log()->debug("Checking for group membership - {$contact['api.GroupContact.get']['count']}");
+
     //Membership was retrieved from a joined query to GroupContact for the members group
     if ($contact['api.GroupContact.get']['count'] == 0) {
+      Civi::log()->debug("Sending consent request to contact {$contact['id']}");
       $consentParams = [
         'contact_id' => $contact['id'],
         'campaign_id' => $campaign_id,
