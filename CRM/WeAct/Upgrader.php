@@ -26,6 +26,7 @@ class CRM_WeAct_Upgrader extends CRM_WeAct_Upgrader_Base {
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-sepa', 'payment_processor_type_id' => 'Dummy']);
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-sepa', 'payment_processor_type_id' => 'Dummy']);
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-paypal', 'payment_processor_type_id' => 'Dummy']);
+    civicrm_api3('PaymentProcessor', 'create', ['name' => 'Paypal-button', 'payment_processor_type_id' => 'Dummy']);
     civicrm_api3('OptionValue', 'create', ['label' => 'Paypal', 'option_group_id' => 'payment_instrument']);
     civicrm_api3('OptionValue', 'create', ['label' => 'Stripe', 'option_group_id' => 'payment_instrument']);
     //Sepa extension creates a Dummy creditor on install, but it doesn't have a type

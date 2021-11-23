@@ -2,9 +2,10 @@
 
 class CRM_WeAct_ActionProcessor {
 
-  public function __construct() {
+  public function __construct($request_consents = TRUE) {
     $this->settings = CRM_WeAct_Settings::instance();
     $this->campaignCache = new CRM_WeAct_CampaignCache(Civi::cache(), new \GuzzleHttp\Client());
+    $this->requestConsents = $request_consents;
   }
 
   public function process(CRM_WeAct_Action $action) {
@@ -20,7 +21,6 @@ class CRM_WeAct_ActionProcessor {
       return $this->settings->anonymousId;
     }
 
-    $requireConsent = FALSE;
     $contact_ids = $action->contact->getMatchingIds();
     if (count($contact_ids) == 0) {
       $contact = $action->contact->create($action->language, $action->source());
@@ -34,7 +34,7 @@ class CRM_WeAct_ActionProcessor {
     Civi::log()->debug("Checking for group membership - {$contact['api.GroupContact.get']['count']}");
 
     //Membership was retrieved from a joined query to GroupContact for the members group
-    if ($contact['api.GroupContact.get']['count'] == 0) {
+    if ($this->requestConsents && $contact['api.GroupContact.get']['count'] == 0) {
       Civi::log()->debug("Sending consent request to contact {$contact['id']}");
       $consentParams = [
         'contact_id' => $contact['id'],
@@ -52,10 +52,12 @@ class CRM_WeAct_ActionProcessor {
   public function processDonation($action, $campaign_id, $contact_id) {
     CRM_Core_Transaction::create(TRUE)->run(function(CRM_Core_Transaction $tx) use ($action, $campaign_id, $contact_id) {
       $donation = $action->details;
-      $rcontrib_id = NULL;
       if ($donation->isRecurring()) {
-        if (!$donation->findMatchingContribRecur()) {
+        $recur_id = $donation->findMatchingContribRecur();
+        if (!$recur_id) {
           $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+        } else {
+          $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm, $recur_id);
         }
       }
       else if (!$donation->findMatchingContrib()) {

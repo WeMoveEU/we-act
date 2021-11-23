@@ -117,4 +117,12 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertExists('SepaMandate', ['iban' => 'PL83101010230000261395100000']);
   }
 
+  public function testPaypalImportOneoff() {
+    $action = CRM_WeAct_Action_PaypalTransactionTest::oneoffAction('1MP0RT3D1D');
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $this->assertExists('Contribution', ['trxn_id' => '1MP0RT3D1D']);
+  }
+
 }
