@@ -84,6 +84,11 @@ class CRM_WeAct_Settings {
         'name' => "Proca-paypal",
         'is_test' => 0,
       ])['id'],
+      'paypal-button' => civicrm_api3('PaymentProcessor', 'getsingle', [
+        'return' => ["id"],
+        'name' => "Paypal-button",
+        'is_test' => 0,
+      ])['id'],
     ];
   }
 
