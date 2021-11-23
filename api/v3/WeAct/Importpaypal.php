@@ -45,9 +45,14 @@ function civicrm_api3_we_act_Importpaypal($params) {
     $action_processor = new CRM_WeAct_ActionProcessor(FALSE);
     foreach (json_decode($history_response->getBody())->transaction_details as $transaction) {
       if (in_array($transaction->transaction_info->transaction_event_code, ['T0013', 'T0002'])) {
-        $action = new CRM_WeAct_Action_PaypalTransaction($transaction);
-        $action_processor->process($action);
-        $result['processed'][] = $action->details->donationId;
+        try {
+          $action = new CRM_WeAct_Action_PaypalTransaction($transaction);
+          $action_processor->process($action);
+          $result['processed'][] = $action->details->donationId;
+        }
+        catch (Exception $e) {
+          $result['not_processed'][] = $transaction->transaction_info->transaction_id . " - " . $e->getMessage();
+        }
       }
       else {
         $result['not_processed'][] = $transaction->transaction_info->transaction_id;
