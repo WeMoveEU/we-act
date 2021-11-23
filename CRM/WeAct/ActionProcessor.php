@@ -56,7 +56,7 @@ class CRM_WeAct_ActionProcessor {
         $recur_id = $donation->findMatchingContribRecur();
         if (!$recur_id) {
           $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
-        } else {
+        } else if (!$donation->findMatchingContrib()) {
           $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm, $recur_id);
         }
       }
