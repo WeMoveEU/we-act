@@ -37,7 +37,7 @@ function civicrm_api3_we_act_Importpaypal($params) {
   $access_token = _we_act_get_paypal_token($http_client, $payment_processor);
 
   $history_response = $http_client->request('GET', "{$payment_processor['url_api']}/v1/reporting/transactions", [
-    'query' => ['start_date' => $params['start'], 'end_date' => $params['end'], 'fields' => 'payer_info,transaction_info'],
+    'query' => ['start_date' => $params['start'], 'end_date' => $params['end'], 'fields' => 'payer_info,transaction_info', 'page_size' => '500'],
     'headers' => ['Authorization' => "Bearer $access_token", 'Content-Type' => 'application/json'],
   ]);
   if ($history_response->getStatusCode() == 200) {
