@@ -55,7 +55,7 @@ function civicrm_api3_we_act_Importpaypal($params) {
         }
       }
       else {
-        $result['not_processed'][] = $transaction->transaction_info->transaction_id;
+        $result['not_processed'][] = $transaction->transaction_info->transaction_id . " - Event code is " . $transaction->transaction_info->transaction_event_code;
       }
     }
     $result['count'] = count($result['processed']) + count($result['not_processed']);
