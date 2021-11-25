@@ -7,14 +7,14 @@ function _civicrm_api3_we_act_Importpaypal_spec(&$spec) {
     'title' => ts('Start date'),
     'description' => 'Date from which the recovery should start in format ISO 8601',
     'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 1,
+    'default' => NULL,
   ];
   $spec['end'] = [
     'name' => 'end',
     'title' => ts('End date'),
     'description' => 'Date at which the recovery should end in format ISO 8601',
     'type' => CRM_Utils_Type::T_STRING,
-    'api.required' => 1,
+    'default' => NULL,
   ];
   $spec['payment_processor_id'] = [
     'name' => 'payment_processor_id',
@@ -27,6 +27,7 @@ function _civicrm_api3_we_act_Importpaypal_spec(&$spec) {
 
 /**
  * Import into CiviCRM all Paypal donations and payments returned by the transaction search.
+ * If no date range is specified, the search will cover 'yesterday' in the time zone of the executing process.
  * Create contacts and campaigns when required.
  * N.B.: Paypal does not return transactions for the creation of recurring donations,
  * so the start date of recurring donations is the payment date. It may not be the first payment!!
@@ -36,6 +37,10 @@ function civicrm_api3_we_act_Importpaypal($params) {
   $http_client = new \GuzzleHttp\Client();
   $access_token = _we_act_get_paypal_token($http_client, $payment_processor);
 
+  if (!$params['start'] && !$params['end']) {
+    $params['start'] = date('Y-m-d\T00:00:00P', strtotime('yesterday'));
+    $params['end'] = date('Y-m-d\T23:59:59P', strtotime('yesterday'));
+  }
   $history_response = $http_client->request('GET', "{$payment_processor['url_api']}/v1/reporting/transactions", [
     'query' => ['start_date' => $params['start'], 'end_date' => $params['end'], 'fields' => 'payer_info,transaction_info', 'page_size' => '500'],
     'headers' => ['Authorization' => "Bearer $access_token", 'Content-Type' => 'application/json'],
