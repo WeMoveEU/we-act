@@ -141,7 +141,7 @@ class CRM_WeAct_Dictionary {
         break;
 
       case 'nl_NL':
-        return 'You are almost done - please confirm your action';
+        return 'Je bent er bijna - bevestig je handtekening';
         break;
 
       case 'pl_PL':
@@ -182,12 +182,16 @@ class CRM_WeAct_Dictionary {
         return "Fammi scegliere la Lingua!";
         break;
 
-      case 'pt_PT':
-        return "Deixe-me escolher o idioma!";
+      case 'nl_NL':
+        return "Laat mij de taal kiezen!";
         break;
 
       case 'pl_PL':
         return "Chcę wybrać język!";
+        break;
+
+      case 'pt_PT':
+        return "Deixe-me escolher o idioma!";
         break;
 
       default:
@@ -377,7 +381,7 @@ class CRM_WeAct_Dictionary {
         break;
 
       case 'nl_NL':
-        return 'Deel op WhatsApp';
+        return 'Deel via WhatsApp';
         break;
 
       case 'pl_PL':
@@ -424,7 +428,7 @@ class CRM_WeAct_Dictionary {
         break;
 
       case 'nl_NL':
-        return 'This button works only on mobile. From a computer, you can use <a href="https://web.whatsapp.com/send?text={$twitter_share_text}%20-%20{$url_campaign}utm_medium=whatsapp-web%26utm_source={$share_utm_source}%26utm_campaign={$utm_campaign}">Whatsapp web</a>.';
+        return 'Deze button werkt alleen op je mobiele telefoon. Vanaf een computer, kun je de volgende link gebruiken voor <a href="https://web.whatsapp.com/send?text={$twitter_share_text}%20-%20{$url_campaign}utm_medium=whatsapp-web%26utm_source={$share_utm_source}%26utm_campaign={$utm_campaign}">Whatsapp web</a>.';
         break;
 
       case 'pl_PL':
