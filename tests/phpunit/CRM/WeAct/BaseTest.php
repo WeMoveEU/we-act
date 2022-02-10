@@ -23,7 +23,7 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
 
   public function setUpHeadless() {
     return \Civi\Test::headless()
-      ->install(['eu.wemove.gidipirus', 'eu.wemove.contributm', 'org.project60.sepa', 'mjwshared', 'com.drastikbydesign.stripe'])
+      ->install(['eu.wemove.gidipirus', 'eu.wemove.contributm', 'org.project60.sepa'])
       ->sql("UPDATE civicrm_sdd_creditor SET creditor_type = 'SEPA' WHERE creditor_type IS NULL")
       ->installMe(__DIR__)
       ->callback(function($ctx) {

@@ -23,11 +23,9 @@
     <ext>eu.wemove.gidipirus</ext>
     <ext>eu.wemove.contributm</ext>
     <ext>org.project60.sepa</ext>
-    <ext>mjwshared</ext>
-    <ext>com.drastikbydesign.stripe</ext>
   </requires>
   <classloader>
-    <psr4 prefix="Civi\" path="Civi"/>
+    <psr4 prefix="Civi\" path="Civi" />
   </classloader>
   <civix>
     <namespace>CRM/WeAct</namespace>
