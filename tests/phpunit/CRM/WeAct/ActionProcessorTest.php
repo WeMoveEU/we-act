@@ -18,7 +18,7 @@ use CRM_WeAct_ExtensionUtil as E;
  */
 class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
 
-  public function setUp() : void {
+  public function setUp(): void {
     parent::setUp();
   }
 
@@ -38,64 +38,45 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertConsentRequestSent();
   }
 
-  /**
-   * @dataProvider isTestProvider
-   */
-  public function testProcaStripeOneoff($is_test) {
-    $action = CRM_WeAct_Action_DataFactory::oneoffStripeAction(NULL, $is_test);
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage', 'is_test' => $is_test]);
-  }
-
-  /**
-   * @dataProvider frequencyProvider
-   */
-  public function testProcaStripeRecur($frequency, $crmFrequency) {
-    $sub_id = 'sub_scription';
-    $action = CRM_WeAct_Action_DataFactory::recurringStripeAction($frequency);
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('ContributionRecur', ['trxn_id' => $sub_id, 'frequency_unit' => $crmFrequency]);
-    $this->assertExists('Contribution', ['trxn_id' => 'in_thevoice']);
-    $this->assertExists('StripeCustomer', ['contact_id' => $this->contactId]);
-  }
-
-  public function testProcaSepaOneoff() {
-    $action = CRM_WeAct_Action_DataFactory::oneoffSepaAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('Contribution', ['trxn_id' => 'proca_5']);
-    $this->assertExists('SepaMandate', ['iban' => 'PL83101010230000261395100000']);
-  }
-
-  public function testProcaPaypalOneoff() {
-    $action = CRM_WeAct_Action_DataFactory::oneoffPaypalAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('Contribution', ['trxn_id' => 'S0M31D']);
-  }
-
-  public function testProcaPaypalRecur() {
-    $action = CRM_WeAct_Action_DataFactory::recurringPaypalAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('ContributionRecur', ['trxn_id' => "I-SUBSCR1PT10N"]);
-    $this->assertExists('Contribution', ['trxn_id' => 'S0M31D']);
-  }
-
   public function testHoudiniStripeRecur() {
     $action = CRM_WeAct_Action_HoudiniTest::recurringStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertExists('ContributionRecur', ['trxn_id' => 'cc_1']);
-    $this->assertExists('Contribution', ['trxn_id' => 'ch_1NHwmdLnnERTfiJAMNHyFjAB']);
+    $recurring = $this->assertExists('ContributionRecur', ['trxn_id' => 'cc_1']);
+    $contribution = $this->assertExists('Contribution', ['trxn_id' => 'ch_1NHwmdLnnERTfiJAMNHyFjAB']);
+
+    $this->verifyUTMS($action->utm, $contribution, $recurring);
+  }
+
+  public function testHoudiniStripeOneoff() {
+    $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $processor->processDonation($action, $this->campaignId, $this->contactId);
+
+    $contribution = $this->assertExists('Contribution', ['trxn_id' => 'ch_1NHwmdLnnERTfiJAMNHyFjV4']);
+
+    $this->verifyUTMS($action->utm, $contribution);
+  }
+
+
+  protected function verifyUTMS($utms, $contribution, $recurring = NULL) {
+    $settings = CRM_WeAct_Settings::instance();
+    # for ecah key in source, check it was saved for both
+    foreach ($utms as $key => $value) {
+      if ($contribution) {
+        $this->assertEquals(
+          $value,
+          $contribution[$settings->customFields["utm_{$key}"]]
+        );
+      }
+      if ($recurring) {
+        $this->assertEquals(
+          $value,
+          $recurring[$settings->customFields["recur_utm_{$key}"]]
+        );
+      }
+    }
   }
 
   public function testHoudiniSepaOneoff() {
@@ -103,8 +84,10 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertExists('Contribution', ['trxn_id' => 'cc_100001']);
+    $contribution = $this->assertExists('Contribution', ['trxn_id' => 'cc_100001']);
     $this->assertExists('SepaMandate', ['iban' => 'PL83101010230000261395100000']);
+
+    $this->verifyUTMS($action->utm, $contribution);
   }
 
   public function testHoudiniSepaRecur() {
@@ -113,8 +96,9 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
     //Created on 13th means the cycle day should be 21st
-    $this->assertExists('ContributionRecur', ['trxn_id' => 'ccr_100001', 'cycle_day' => 21]);
+    $recurring = $this->assertExists('ContributionRecur', ['trxn_id' => 'ccr_100001', 'cycle_day' => 21]);
     $this->assertExists('SepaMandate', ['iban' => 'PL83101010230000261395100000']);
+    $this->verifyUTMS($action->utm, NULL, $recurring);
   }
 
   public function testPaypalImportOneoff() {
@@ -122,7 +106,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertExists('Contribution', ['trxn_id' => '1MP0RT3D1D']);
+    $contribution = $this->assertExists('Contribution', ['trxn_id' => '1MP0RT3D1D']);
+    $this->verifyUTMS($action->utm, $contribution);
   }
-
 }

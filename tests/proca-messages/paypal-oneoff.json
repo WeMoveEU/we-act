@@ -1,0 +1,144 @@
+{
+    "action": {
+        "actionType": "donate",
+        "createdAt": "2022-03-17T14:19:49Z",
+        "customFields": {
+            "amount": 8,
+            "campaign": 42,
+            "frequency": "oneoff",
+            "initialAmount": 8,
+            "language": "en",
+            "speakoutCampaign": 42
+        },
+        "donation": {
+            "amount": 800,
+            "currency": "EUR",
+            "frequencyUnit": "one_off",
+            "payload": {
+                "order": {
+                    "create_time": "2022-03-17T14:19:08Z",
+                    "id": "1WA12081ND9418533",
+                    "intent": "CAPTURE",
+                    "links": [
+                        {
+                            "href": "https://api.sandbox.paypal.com/v2/checkout/orders/1WA12081ND9418533",
+                            "method": "GET",
+                            "rel": "self"
+                        }
+                    ],
+                    "payer": {
+                        "address": {
+                            "country_code": "FR"
+                        },
+                        "email_address": "aaron@wemove.eu",
+                        "name": {
+                            "given_name": "Aaron",
+                            "surname": "Ross"
+                        },
+                        "payer_id": "TR9A6ZU7H55XC"
+                    },
+                    "purchase_units": [
+                        {
+                            "amount": {
+                                "currency_code": "EUR",
+                                "value": "8.00"
+                            },
+                            "payee": {
+                                "email_address": "tech@wemove.eu",
+                                "merchant_id": "AW83F4LPQY4D4"
+                            },
+                            "payments": {
+                                "captures": [
+                                    {
+                                        "amount": {
+                                            "currency_code": "EUR",
+                                            "value": "8.00"
+                                        },
+                                        "create_time": "2022-03-17T14:19:48Z",
+                                        "final_capture": true,
+                                        "id": "1NU5944779050960E",
+                                        "seller_protection": {
+                                            "dispute_categories": [
+                                                "ITEM_NOT_RECEIVED",
+                                                "UNAUTHORIZED_TRANSACTION"
+                                            ],
+                                            "status": "ELIGIBLE"
+                                        },
+                                        "status": "COMPLETED",
+                                        "update_time": "2022-03-17T14:19:48Z"
+                                    }
+                                ]
+                            },
+                            "reference_id": "default",
+                            "soft_descriptor": "PAYPAL *TEST STORE"
+                        }
+                    ],
+                    "status": "COMPLETED",
+                    "update_time": "2022-03-17T14:19:48Z"
+                },
+                "provider": "paypal",
+                "response": {
+                    "billingToken": null,
+                    "facilitatorAccessToken": "A21AAJxundLoUeTUQT631gcKjFAf2exiqPcYqwE1Zv9qWMh4_T6KyJ8Hlyv1YVxApSJz_naIb2gXPdcvvLwstDj18GKwfTatQ",
+                    "orderID": "1WA12081ND9418533",
+                    "payerID": "TR9A6ZU7H55XC",
+                    "paymentID": null
+                },
+                "values": {
+                    "amount": 8,
+                    "campaign": 1339,
+                    "frequency": "oneoff",
+                    "initialAmount": 8,
+                    "language": "en",
+                    "speakoutCampaign": 1339
+                }
+            }
+        },
+        "testing": false
+    },
+    "actionId": 341,
+    "actionPage": {
+        "locale": "fr",
+        "name": "birds/minimumbasicseeds",
+        "supporterConfirmTemplate": null,
+        "thankYouTemplate": "3568892",
+        "thankYouTemplateRef": null
+    },
+    "actionPageId": 1,
+    "campaign": {
+        "externalId": null,
+        "name": "letsdoit",
+        "title": "Let's do it!"
+    },
+    "campaignId": 1,
+    "contact": {
+        "area": "FR",
+        "contactRef": "g4_94zpoQefQ_o--Kqm10_kVDyTYnSJRsLOf7LE1gMA",
+        "country": "FR",
+        "email": "aaron@wemove.eu",
+        "firstName": "Aaron",
+        "lastName": "Ross"
+    },
+    "org": {
+        "name": "WeMove",
+        "title": "WeMove"
+    },
+    "orgId": 2,
+    "personalInfo": null,
+    "privacy": {
+        "emailStatus": null,
+        "emailStatusChanged": null,
+        "givenAt": "2022-03-17T14:19:49Z",
+        "optIn": false,
+        "withConsent": true
+    },
+    "schema": "proca:action:2",
+    "stage": "deliver",
+    "tracking": {
+        "campaign": "unknown",
+        "content": "",
+        "location": "https://act.not-a2.eu/campaigns/1339",
+        "medium": "unknown",
+        "source": "unknown"
+    }
+}

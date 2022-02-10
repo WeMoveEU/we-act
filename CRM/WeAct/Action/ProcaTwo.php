@@ -9,23 +9,17 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $this->actionPageId = $json_msg->actionPageId;
     $this->actionPageName = $json_msg->actionPage->name;
     $this->contact = $this->buildContact($json_msg->contact);
-    $this->language = $this->determineLanguage($json_msg); // ->actionPage->locale);
+    $this->language = $this->contact->determineLanguage($json_msg); // ->actionPage->locale);
 
     $this->details = $this->buildDonation($json_msg->actionId, $json_msg->action);
-    $this->locationId = @$json_msg->action->customFields->speakoutCampaign;
 
+    $this->locationId = @$json_msg->action->customFields->speakoutCampaign;
     if (property_exists($json_msg, 'tracking') && $json_msg->tracking) {
-      $this->utm = [];
-      $tracking = $json_msg->tracking;
-      foreach (['source', 'medium', 'campaign', 'location'] as $key) {
-        if (
-          property_exists($tracking, $key)
-          && $tracking->{$key}
-          && $tracking->{$key} != "unknown"
-        ) {
-          $this->utm[$key] = $tracking->{$key};
-        }
-      }
+      $this->utm = [
+        'source' => @$json_msg->tracking->source,
+        'medium' => @$json_msg->tracking->medium,
+        'campaign' => @$json_msg->tracking->campaign,
+      ];
       $this->location = @$json_msg->tracking->location;
     } else {
       $this->utm = NULL;
@@ -48,21 +42,22 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
   }
 
   protected function buildDonation($action_id, $json_action) {
+    $statusMap = ['succeeded' => 'Completed', 'failed' => 'Failed'];
     $frequencyMap = ['one_off' => 'one-off', 'monthly' => 'month', 'weekly' => 'week', 'daily' => 'day'];
-    $settings = CRM_WeAct_Settings::instance();
 
     $donation = new CRM_WeAct_Action_Donation();
     $donation->createdAt = $json_action->createdAt;
-    $donation->status = $settings->contributionStatusIds['completed'];
+    $donation->status = 'Completed'; //FIXME $statusMap[$json_action->customFields->status];
     $donation->amount = intval($json_action->donation->amount) / 100;
     $donation->fee = 0;
     $donation->currency = strtoupper($json_action->donation->currency);
     if (@$frequencyMap[$json_action->donation->frequencyUnit]) {
       $donation->frequency = $frequencyMap[$json_action->donation->frequencyUnit];
-    } else {
+    }
+    else {
       $donation->frequency = 'one-off';
     }
-    $donation->isTest = False;
+    $donation->isTest = FALSE;
 
     $provider = $json_action->donation->payload->provider;
     $donation->processor = $this->externalSystem . '-' . $provider;
@@ -75,78 +70,55 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     } else if ($provider == 'stripe') {
       $donation->paymentMethod = $json_action->donation->payload->paymentConfirm->payment_method_types[0];
       $donation->isTest = !$json_action->donation->payload->paymentIntent->response->livemode;
-      # this becomes civicrm_contribution.trxn_id - we've used charge id,
-      # invoice id and payment intent for that value. We have payment intent id
-      # here, so use it. =)
-      $donation->paymentId = $json_action->donation->payload->paymentIntent->response->id;
       if ($donation->frequency == 'one-off') {
+        $donation->paymentId = $json_action->donation->payload->paymentIntent->response->id;
         $donation->donationId = $donation->paymentId;
       } else {
-        // This should match up with the Stripe webhook - which sort of expects
-        // the invoice id as trxn_id of contributions, but also does some weird
-        // shit that is really hard to grok. So if there's a problem with
-        // payments getting attached to recurring donations, maybe it's because
-        // this doesn't match up with what the stripe extension is expecting.
+        //Stripe webhook expects invoice id as trxn_id of contributions
         $donation->paymentId = $json_action->donation->payload->paymentIntent->response->latest_invoice->id;
         $donation->donationId = $json_action->donation->payload->subscriptionId;
         $donation->providerDonorId = $json_action->donation->payload->customerId;
       }
     } else if ($provider == "paypal") {
-      $donation->paymentId = $json_action->donation->payload->response->orderID;
+      $donation->paymentId = $json_action->donation->payload->order->id;
       $donation->paymentMethod = 'paypal';
       if ($donation->frequency == 'one-off') {
         $donation->donationId = $donation->paymentId;
       } else {
-        $donation->donationId = $json_action->donation->payload->response->subscriptionID;
+        $donation->donationId = $json_action->donation->payload->subscriptionId;
       }
     }
 
     return $donation;
   }
 
-  static private function _language_code_to_locale($language) {
-    // NOTE: this is terrible, but true
-    if (strtoupper($language) == 'EN') {
-        return "en_GB";
-    }
-    if (strlen($language) == 2) {
-      return strtolower($language) . "_" . strtoupper($language);
-    }
-    return $language; // who knows, maybe it's valid =)
-  }
-
-  static public function determineLanguage($message) {
+  public function determineLanguage($action) {
     /*
-    Try to guess language:
+      Hrm, I'm very confused about what to do here. Sometimes we have a Country,
+      sometimes we don't. Language and Locale are used inter-changeably
+      sometimes.
 
-      1. custom fields, set by hosting page
-      2. country -> language mapping
-      3. widget locale, set at build time
-      4. en_GB
+      We have Language based lists, so we should try hardest to get the language and
+      only secondarily the country.
+
+      And we should add Country to add the forms. Duh.
     */
-    $page = $message->actionPage;
-    $action = $message->action;
-    $contact = $message->contact;
+    $page = $action->actionPage;
+    $action = $action->action;
+
+    if (property_exists($action->customFields, 'language')) {
+      $language = $action->customFields->language;
+    }
+    else  {
+      $language = $page->locale;
+    }
+    $language = strtoupper($language);
 
     $settings = CRM_WeAct_Settings::instance();
     $countryLangMapping = $settings->countryCodeToLocale;
 
-    $language = @$action->customFields->language;
-    if ($language) {
-      return self::_language_code_to_locale($language);
-    }
-
-    $country = @$contact->country;
-    if ($country) {
-      if (array_key_exists($country, $countryLangMapping)) {
-        return $countryLangMapping[$country];
-      }
-    }
-
-    // NOTE: it's not really a locale, just a 2 char language code
-    $locale = @$page->locale;
-    if ($locale) {
-      return self::_language_code_to_locale($locale);
+    if (array_key_exists($language, $countryLangMapping)) {
+      return $countryLangMapping[$language];
     }
 
     return 'en_GB';

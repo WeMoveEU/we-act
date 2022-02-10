@@ -1,6 +1,8 @@
 <?php
 
 require_once 'we_act.civix.php';
+require_once('vendor/autoload.php');
+
 // phpcs:disable
 use CRM_WeAct_ExtensionUtil as E;
 // phpcs:enable

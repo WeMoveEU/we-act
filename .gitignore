@@ -18,4 +18,7 @@ Session.vim
 *~
 # auto-generated tag files
 tags
+vendor
+composer.lock
 
+ .phpunit.result.cache

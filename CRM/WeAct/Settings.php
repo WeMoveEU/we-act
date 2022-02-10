@@ -11,10 +11,12 @@ class CRM_WeAct_Settings {
     $this->emailGreetingIds = $this->fetchEmailGreetingIds();
     //Mapping of country code => country id
     $this->countryIds = $this->fetchCountryIds();
-    $this->financialTypeId = 1; //FIXME
+    $this->financialTypeId = 1; // FIXME
     $this->paymentInstrumentIds = $this->fetchPaymentInstruments();
     $this->paymentProcessorIds = $this->fetchPaymentProcessors();
+    $this->contributionStatusIds = $this->fetchContributionStatus();
     $this->customFields = $this->fetchCustomFields();
+    $this->countryCodeToLocale = Civi::settings()->get('country_lang_mapping');
   }
 
   public static function instance() {
@@ -57,6 +59,19 @@ class CRM_WeAct_Settings {
     ];
   }
 
+  protected function fetchContributionStatus() {
+    $dao = CRM_Core_DAO::executeQuery(<<<SQL
+      select lower(label) name, value from civicrm_option_value
+      where option_group_id = (select id from civicrm_option_group where name = 'contribution_status')
+SQL
+    );
+    $map = [];
+    while ($dao->fetch()) {
+      $map[$dao->name] = $dao->value;
+    }
+    return $map;
+  }
+
   protected function fetchPaymentProcessors() {
     return [
       'houdini-stripe' => civicrm_api3('PaymentProcessor', 'getsingle', [
@@ -87,6 +102,11 @@ class CRM_WeAct_Settings {
       'paypal-button' => civicrm_api3('PaymentProcessor', 'getsingle', [
         'return' => ["id"],
         'name' => "Paypal-button",
+        'is_test' => 0,
+      ])['id'],
+      'stripe' => civicrm_api3('PaymentProcessor', 'getsingle', [
+        'return' => ["id"],
+        'name' => "Credit Card",
         'is_test' => 0,
       ])['id'],
     ];

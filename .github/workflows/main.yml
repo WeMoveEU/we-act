@@ -2,13 +2,14 @@
 
 name: Run tests
 
+env:
+  STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: 
-      - master
-      - stripe-endpoint
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -21,6 +22,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-18.04
+    environment: testing
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -62,7 +64,12 @@ jobs:
         with:
           path: drupal/sites/all/modules/civicrm/ext/we-act
 
-      - name: Run unit tests
-        run: phpunit
+      - name: Run composer
+        run: composer install
         working-directory: drupal/sites/all/modules/civicrm/ext/we-act
+
+      - name: Run unit tests
+        run: STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} phpunit
+        working-directory: drupal/sites/all/modules/civicrm/ext/we-act
+
 

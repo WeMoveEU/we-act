@@ -1,0 +1,141 @@
+{
+    "id": "evt_3Kc8iVLEJyfuWvBB1xU11vfQ",
+    "object": "event",
+    "api_version": "2020-03-02",
+    "created": 1647616862,
+    "data": {
+        "object": {
+            "id": "ch_3Kc8iVLEJyfuWvBB1Sj7lU2M",
+            "object": "charge",
+            "amount": 1200,
+            "amount_captured": 1200,
+            "amount_refunded": 1200,
+            "application": null,
+            "application_fee": null,
+            "application_fee_amount": null,
+            "balance_transaction": "txn_3Kc8iVLEJyfuWvBB1Z9tAULV",
+            "billing_details": {
+                "address": {
+                    "city": null,
+                    "country": "AT",
+                    "line1": null,
+                    "line2": null,
+                    "postal_code": "ZZ 2341",
+                    "state": null
+                },
+                "email": "aaronelliotross+tipuseboma@gmail.com",
+                "name": null,
+                "phone": null
+            },
+            "calculated_statement_descriptor": "WEMOVE.EU",
+            "captured": true,
+            "created": 1647006088,
+            "currency": "eur",
+            "customer": "cus_LIkCuxOzWFa2oo",
+            "description": null,
+            "destination": null,
+            "dispute": null,
+            "disputed": false,
+            "failure_code": null,
+            "failure_message": null,
+            "fraud_details": {},
+            "invoice": null,
+            "livemode": false,
+            "metadata": {},
+            "on_behalf_of": null,
+            "order": null,
+            "outcome": {
+                "network_status": "approved_by_network",
+                "reason": null,
+                "risk_level": "normal",
+                "risk_score": 17,
+                "seller_message": "Payment complete.",
+                "type": "authorized"
+            },
+            "paid": true,
+            "payment_intent": "pi_3Kc8iVLEJyfuWvBB116EfoKh",
+            "payment_method": "pm_1Kc8iWLEJyfuWvBB2gSJOdhO",
+            "payment_method_details": {
+                "card": {
+                    "brand": "visa",
+                    "checks": {
+                        "address_line1_check": null,
+                        "address_postal_code_check": "pass",
+                        "cvc_check": "pass"
+                    },
+                    "country": "IE",
+                    "exp_month": 9,
+                    "exp_year": 2022,
+                    "fingerprint": "WYjxXcmx1Ozm60Wn",
+                    "funding": "credit",
+                    "installments": null,
+                    "last4": "3220",
+                    "mandate": null,
+                    "network": "visa",
+                    "three_d_secure": {
+                        "authenticated": true,
+                        "authentication_flow": "challenge",
+                        "result": "authenticated",
+                        "result_reason": null,
+                        "succeeded": true,
+                        "version": "2.1.0"
+                    },
+                    "wallet": null
+                },
+                "type": "card"
+            },
+            "receipt_email": null,
+            "receipt_number": null,
+            "receipt_url": "https://pay.stripe.com/receipts/acct_16ExxKLEJyfuWvBB/ch_3Kc8iVLEJyfuWvBB1Sj7lU2M/rcpt_LIkDtkZYgIzLNFRNIizfqFOHhDG0UVK",
+            "refunded": true,
+            "refunds": {
+                "object": "list",
+                "data": [
+                    {
+                        "id": "re_3Kc8iVLEJyfuWvBB1mXjX5a4",
+                        "object": "refund",
+                        "amount": 1200,
+                        "balance_transaction": "txn_3Kc8iVLEJyfuWvBB1u0uvKVc",
+                        "charge": "ch_3Kc8iVLEJyfuWvBB1Sj7lU2M",
+                        "created": 1647616861,
+                        "currency": "eur",
+                        "metadata": {},
+                        "payment_intent": "pi_3Kc8iVLEJyfuWvBB116EfoKh",
+                        "reason": "requested_by_customer",
+                        "receipt_number": null,
+                        "source_transfer_reversal": null,
+                        "status": "succeeded",
+                        "transfer_reversal": null
+                    }
+                ],
+                "has_more": false,
+                "total_count": 1,
+                "url": "/v1/charges/ch_3Kc8iVLEJyfuWvBB1Sj7lU2M/refunds"
+            },
+            "review": null,
+            "shipping": null,
+            "source": null,
+            "source_transfer": null,
+            "statement_descriptor": null,
+            "statement_descriptor_suffix": null,
+            "status": "succeeded",
+            "transfer_data": null,
+            "transfer_group": null
+        },
+        "previous_attributes": {
+            "amount_refunded": 0,
+            "refunded": false,
+            "refunds": {
+                "data": [],
+                "total_count": 0
+            }
+        }
+    },
+    "livemode": false,
+    "pending_webhooks": 2,
+    "request": {
+        "id": "req_L7onOCXJXMBcsm",
+        "idempotency_key": "1774c634-bd86-46a5-b1b4-df93f180d602"
+    },
+    "type": "charge.refunded"
+}

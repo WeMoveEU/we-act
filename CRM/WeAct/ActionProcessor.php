@@ -12,57 +12,46 @@ class CRM_WeAct_ActionProcessor {
     if ($action->actionType == 'donate') {
       $campaign = $this->campaignCache->getFromAction($action);
       $contact_id = $this->getOrCreateContact($action, $campaign['id']);
-      $this->processDonation($action, $campaign['id'], $contact_id);
+      return $this->processDonation($action, $campaign['id'], $contact_id);
     }
   }
 
   public function getOrCreateContact(CRM_WeAct_Action $action, $campaign_id) {
-    if ($action->contact->isAnonymous()) {
-      return $this->settings->anonymousId;
+    $result = $action->contact->createOrUpdate(
+      $action->language,
+      $action->source()
+    );
+
+    if ($this->requestConsents) {
+      $action->contact->sendConsents(
+        $result['id'],
+        $campaign_id,
+        [ 'source' => CRM_Utils_Array::value('source', $action->utm),
+          'medium' => CRM_Utils_Array::value('medium', $action->utm),
+          'campaign' => CRM_Utils_Array::value('campaign', $action->utm) ]
+      );
     }
 
-    $contact_ids = $action->contact->getMatchingIds();
-    if (count($contact_ids) == 0) {
-      $contact = $action->contact->create($action->language, $action->source());
-    } else {
-      //There shouldn't be more than one contact, but if does we'll simply use the "oldest" one
-      //TODO send an alert to someone that a merge is required if more than one id
-      $contact_id = min($contact_ids);
-      $contact = $action->contact->getAndUpdate($contact_id);
-    }
-
-    Civi::log()->debug("Checking for group membership - {$contact['api.GroupContact.get']['count']}");
-
-    //Membership was retrieved from a joined query to GroupContact for the members group
-    if ($this->requestConsents && $contact['api.GroupContact.get']['count'] == 0) {
-      Civi::log()->debug("Sending consent request to contact {$contact['id']}");
-      $consentParams = [
-        'contact_id' => $contact['id'],
-        'campaign_id' => $campaign_id,
-        'utm_source' => CRM_Utils_Array::value('source', $action->utm),
-        'utm_medium' => CRM_Utils_Array::value('medium', $action->utm),
-        'utm_campaign' => CRM_Utils_Array::value('campaign', $action->utm),
-      ];
-      civicrm_api3('Gidipirus', 'send_consent_request', $consentParams);
-    }
-
-    return $contact['id'];
+    return $result['id'];
   }
 
   public function processDonation($action, $campaign_id, $contact_id) {
-    CRM_Core_Transaction::create(TRUE)->run(function(CRM_Core_Transaction $tx) use ($action, $campaign_id, $contact_id) {
+    $created = NULL;
+    CRM_Core_Transaction::create(TRUE)->run(function(CRM_Core_Transaction $tx) use ($action, $campaign_id, $contact_id, &$created) {
       $donation = $action->details;
       if ($donation->isRecurring()) {
         $recur_id = $donation->findMatchingContribRecur();
         if (!$recur_id) {
-          $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+          $created = $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
         } else if (!$donation->findMatchingContrib()) {
-          $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm, $recur_id);
+          $created = $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm, $recur_id);
         }
       }
       else if (!$donation->findMatchingContrib()) {
-        $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+        $created = $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
       }
     });
+    return $created;
   }
+
 }

@@ -1,0 +1,159 @@
+{
+    "action": {
+        "actionType": "donate",
+        "createdAt": "2022-03-11T13:41:30Z",
+        "customFields": {
+            "amount": 12,
+            "campaign": 42,
+            "frequency": "oneoff",
+            "initialAmount": 8,
+            "language": "en",
+            "paymentMethod": "stripe",
+            "speakoutCampaign": 42
+        },
+        "donation": {
+            "amount": 1200,
+            "currency": "EUR",
+            "frequencyUnit": "one_off",
+            "payload": {
+                "formValues": {
+                    "country": "AT",
+                    "email": "aaronelliotross+tipuseboma@gmail.com",
+                    "firstname": "Valentine",
+                    "lastname": "Santana",
+                    "postcode": "ZZ 2341"
+                },
+                "paymentConfirm": {
+                    "amount": 1200,
+                    "automatic_payment_methods": null,
+                    "canceled_at": null,
+                    "cancellation_reason": null,
+                    "capture_method": "automatic",
+                    "client_secret": "pi_3Kc8iVLEJyfuWvBB116EfoKh_secret_CmkbcOGQP40LHpNzRFvjilC6C",
+                    "confirmation_method": "automatic",
+                    "created": 1647006075,
+                    "currency": "eur",
+                    "description": null,
+                    "id": "pi_3Kc8iVLEJyfuWvBB116EfoKh",
+                    "last_payment_error": null,
+                    "livemode": false,
+                    "next_action": null,
+                    "object": "payment_intent",
+                    "payment_method": "pm_1Kc8iWLEJyfuWvBB2gSJOdhO",
+                    "payment_method_types": [
+                        "card"
+                    ],
+                    "processing": null,
+                    "receipt_email": null,
+                    "setup_future_usage": "off_session",
+                    "shipping": null,
+                    "source": null,
+                    "status": "succeeded"
+                },
+                "paymentIntent": {
+                    "client_secret": "pi_3Kc8iVLEJyfuWvBB116EfoKh_secret_CmkbcOGQP40LHpNzRFvjilC6C",
+                    "response": {
+                        "setup_future_usage": "off_session",
+                        "payment_method": null,
+                        "livemode": false,
+                        "capture_method": "automatic",
+                        "payment_method_options": {
+                            "card": {
+                                "installments": null,
+                                "network": null,
+                                "request_three_d_secure": "automatic"
+                            }
+                        },
+                        "charges": {
+                            "data": [],
+                            "has_more": false,
+                            "object": "list",
+                            "total_count": 0,
+                            "url": "/v1/charges?payment_intent=pi_3Kc8iVLEJyfuWvBB116EfoKh"
+                        },
+                        "amount_received": 0,
+                        "metadata": {},
+                        "description": null,
+                        "payment_method_types": [
+                            "card"
+                        ],
+                        "amount_capturable": 0,
+                        "review": null,
+                        "confirmation_method": "automatic",
+                        "next_action": null,
+                        "on_behalf_of": null,
+                        "customer": "cus_LIkCuxOzWFa2oo",
+                        "amount": 1200,
+                        "invoice": null,
+                        "statement_descriptor": null,
+                        "application": null,
+                        "client_secret": "pi_3Kc8iVLEJyfuWvBB116EfoKh_secret_CmkbcOGQP40LHpNzRFvjilC6C",
+                        "receipt_email": null,
+                        "object": "payment_intent",
+                        "source": null,
+                        "last_payment_error": null,
+                        "canceled_at": null,
+                        "currency": "eur",
+                        "created": 1647006075,
+                        "cancellation_reason": null,
+                        "status": "requires_payment_method",
+                        "transfer_group": null,
+                        "application_fee_amount": null,
+                        "statement_descriptor_suffix": null,
+                        "transfer_data": null,
+                        "id": "pi_3Kc8iVLEJyfuWvBB116EfoKh",
+                        "shipping": null
+                    }
+                },
+                "provider": "stripe"
+            }
+        },
+        "testing": false
+    },
+    "actionId": 330,
+    "actionPage": {
+        "locale": "fr",
+        "name": "birds/minimumbasicseeds",
+        "supporterConfirmTemplate": null,
+        "thankYouTemplate": "3568892",
+        "thankYouTemplateRef": null
+    },
+    "actionPageId": 1,
+    "campaign": {
+        "externalId": null,
+        "name": "letsdoit",
+        "title": "Let's do it!"
+    },
+    "campaignId": 1,
+    "contact": {
+        "area": "AT",
+        "contactRef": "-rQSsCWK6Pjc9qxSuwmr_BURN48_pivI_SoMAcbig_k",
+        "country": "AT",
+        "email": "aaronelliotross+tipuseboma@gmail.com",
+        "firstName": "Valentine",
+        "lastName": "Santana",
+        "postcode": "ZZ 2341"
+    },
+    "org": {
+        "name": "WeMove",
+        "title": "WeMove"
+    },
+    "orgId": 2,
+    "personalInfo": null,
+    "privacy": {
+        "emailStatus": null,
+        "emailStatusChanged": null,
+        "givenAt": "2022-03-11T13:41:30Z",
+        "optIn": false,
+        "withConsent": true
+    },
+    "schema": "proca:action:2",
+    "stage": "deliver",
+    "tracking": {
+        "campaign": "stripe-oneoff-campaign",
+        "content": "stripe-oneoff-content",
+        "location": "https://act.not-a2.eu/campaigns/2022-spring-fundraising-update",
+        "medium": "stripe-oneoff-medium",
+        "source": "stripe-oneoff-source"
+    }
+}

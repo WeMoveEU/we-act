@@ -11,15 +11,31 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
     parent::setUp();
   }
 
+  // Create the subscription from a Proca event, then test an IPN notification
+  // from PayPal finds the subscription and saves it.
   public function testNewRecurringPayment() {
-    $action = CRM_WeAct_Action_DataFactory::recurringPaypalAction();
+    $event = CRM_WeAct_Action_ProcaMessageFactory::recurringPaypalAction();
+    $paypal_subscription_id = $event->action->donation->payload->response->subscriptionID;
+
+    $action = new CRM_WeAct_Action_Proca($event);
     $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
+    $recurring = $processor->process($action, $this->contactId);
 
+    // OK, now handle the IPN notification
     $page = new CRM_WeAct_Page_Paypal();
-    $page->processNotification(json_decode($this->recurringPayment("I-SUBSCR1PT10N")));
+    $page->processNotification(json_decode($this->recurringPayment($paypal_subscription_id)));
 
-    $this->assertExists('Contribution', ['trxn_id' => '6M2390528T390274B', 'receive_date' => '2021-07-20 16:05:20']);
+    $contribution = $this->assertExists('Contribution', [
+      'trxn_id' => '6M2390528T390274B',
+      'receive_date' => '2021-07-20 14:05:20'
+    ]);
+    $recurring = $this->assertExists('ContributionRecur', [
+      'trxn_id' => $paypal_subscription_id
+
+    ]);
+    $this->assertEquals($contribution['contribution_recur_id'], $recurring['id']);
+
+    $this->verifyUTMS($event->tracking, $contribution, $recurring);
   }
 
   public function testUnknownRecurringDonation() {
@@ -30,6 +46,7 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
   }
 
   protected function recurringPayment($subscription_id) {
+    // do the real events contain an amount?
     return <<<JSON
     {
       "event_type": "PAYMENT.SALE.COMPLETED",
@@ -43,6 +60,9 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
     }
 JSON;
   }
+
+  // TODO
+  // protected function recurringCancel($subscription_id) {}
 
 }
 

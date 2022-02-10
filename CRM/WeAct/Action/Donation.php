@@ -48,27 +48,16 @@ class CRM_WeAct_Action_Donation {
     if (substr($this->processor, -5) == '-sepa') {
       $create_mandate = $this->createMandate($contact_id, 'RCUR', $campaign_id, $action_page);
       //Mandates don't have utm fields, so associate them to recurring contrib created along with mandate
-      civicrm_api3('ContributionRecur', 'create', [
+      $created = civicrm_api3('ContributionRecur', 'create', [
         'id' => $create_mandate['values'][0]['entity_id'],
         $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
         $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ]);
+      // careful, a real create returns a list, an update returns a map.
+      return $created['values'][$created['id']];
     } else {
       $processor_id = $this->settings->paymentProcessorIds[$this->processor];
-
-      if ($this->processor == 'proca-stripe') {
-        //Stripe webhook requires a link customer<->contact to process events, so we create it here if needed
-        $customer_params = [
-          'customer_id' => $this->providerDonorId,
-          'contact_id' => $contact_id,
-          'processor_id' => $processor_id
-        ];
-        $customer = civicrm_api3('StripeCustomer', 'get', $customer_params);
-        if ($customer['count'] == 0) {
-          civicrm_api3('StripeCustomer', 'create', $customer_params);
-        }
-      }
 
       $params = [
         'sequential' => 1,
@@ -85,27 +74,31 @@ class CRM_WeAct_Action_Donation {
         'payment_instrument_id' => $this->settings->paymentInstrumentIds[$this->paymentMethod],
         'payment_processor_id' => $processor_id,
         'campaign_id' => $campaign_id,
-        'is_test' => $this->isTest,
+        'is_test' => false, // $this->isTest,
         $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
         $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ];
       $create_recur = civicrm_api3('ContributionRecur', 'create', $params);
       $this->createContrib($campaign_id, $contact_id, $action_page, $location, $utm, $create_recur['id']);
+      return $create_recur['values'][0];
     }
   }
 
   public function createContrib($campaign_id, $contact_id, $action_page, $location, $utm, $recurring_id = NULL) {
     $statusMap = ['success' => 'Completed', 'failed' => 'Failed'];
+    $contribution = NULL;
     if (substr($this->processor, -5) == '-sepa') {
       $create_mandate = $this->createMandate($contact_id, 'OOFF', $campaign_id, $action_page);
-      //Mandates don't have utm fields, so associate them to recurring contrib created along with mandate
-      civicrm_api3('Contribution', 'create', [
+      // Mandates don't have utm fields, so associate them to the contribution created along with mandate
+      $contribution = civicrm_api3('Contribution', 'create', [ // "create" is a lie, this is an update
         'id' => $create_mandate['values'][0]['entity_id'],
         $this->settings->customFields['utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['utm_medium'] => CRM_Utils_Array::value('medium', $utm),
         $this->settings->customFields['utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ]);
+      // careful, a real create returns a list, an update returns a map.
+      return $contribution['values'][$contribution['id']];
     }
     else {
       $params = [
@@ -121,24 +114,26 @@ class CRM_WeAct_Action_Donation {
         'fee_amount' => $this->fee,
         'net_amount' => ($this->amount - $this->fee),
         'trxn_id' => $this->paymentId,
+        'invoice_id' => @$this->donationId, // ? $this->invoiceId : $this->paymentId,
         'contribution_status' => CRM_Utils_Array::value($this->status, $statusMap, 'Pending'),
         'currency' => $this->currency,
         'subject' => $action_page,
         'source' => $action_page,
         'location' => $location,
-        'is_test' => $this->isTest,
+        'is_test' => false, // $this->isTest,
       ];
       if ($recurring_id) {
         $params['contribution_recur_id'] = $recurring_id;
-        //The utm params will be set by a hook in contributm extension, let's not mess with it
+        // The utm params get copied by repeattransation *and* set by a hook in contributm extension, let's not mess with it?
       }
       else {
         $params[$this->settings->customFields['utm_source']] = CRM_Utils_Array::value('source', $utm);
         $params[$this->settings->customFields['utm_medium']] = CRM_Utils_Array::value('medium', $utm);
         $params[$this->settings->customFields['utm_campaign']] = CRM_Utils_Array::value('campaign', $utm);
       }
-      civicrm_api3('Contribution', 'create', $params);
+      $contribution = civicrm_api3('Contribution', 'create', $params);
     }
+    return $contribution['values'][0];
   }
 
   protected function createMandate($contact_id, $mandate_type, $campaign_id, $source) {
