@@ -7,4 +7,11 @@
     <access_callback>1</access_callback>
     <is_public>true</is_public>
   </item>
+  <item>
+    <path>civicrm/we-act/stripe</path>
+    <page_callback>CRM_WeAct_Page_Stripe</page_callback>
+    <title>WeMove Stripe Webhook</title>
+    <access_callback>1</access_callback>
+    <is_public>true</is_public>
+  </item>
 </menu>

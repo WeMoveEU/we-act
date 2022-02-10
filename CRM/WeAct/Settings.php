@@ -143,6 +143,6 @@ class CRM_WeAct_Settings {
     if (array_key_exists($locale, $this->emailGreetingIds)) {
       return $this->emailGreetingIds[$locale][''];
     }
-    return 0;
+    return NULL;
   }
 }
