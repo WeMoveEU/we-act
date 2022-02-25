@@ -33,11 +33,11 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
 JSON;
   }
 
-  protected static function stripePayload($frequency, $livemode = "true") {
+  protected static function stripePayload($frequency, $livemode = "true", $subscriptionID = 'sub_scription') {
     $subscription = "";
     $latest_invoice = "";
     if ($frequency != "one_off") {
-      $subscription = ', "subscriptionId": "sub_scription", "customerId": "cus_TomEr"';
+      $subscription = ", \"subscriptionId\": \"{$subscriptionID}\", \"customerId\": \"cus_TomEr\"";
       $latest_invoice = ', "latest_invoice": {"id": "in_thevoice"}';
     }
     return <<<JSON
@@ -74,10 +74,13 @@ JSON;
     }
 JSON;
   }
-  protected static function donationJson($frequency, $payload) {
+  protected static function donationJson($frequency, $payload, $amount = "1000") {
+    if ($amount == NULL) {
+      $amount = "1000";
+    }
     return <<<JSON
     {
-        "amount": "1000",
+        "amount": "$amount",
         "currency": "EUR",
         "frequencyUnit": "$frequency",
         "payload": $payload
@@ -177,7 +180,10 @@ JSON;
 
   public static function oneoffStripeAction($tracking = NULL, $is_test = FALSE) {
     return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("one_off", self::stripePayload("one_off", $is_test ? "false" : "true")),
+      self::donationJson(
+        "one_off",
+        self::stripePayload("one_off", $is_test ? "false" : "true")
+      ),
       self::trackingFields($tracking),
       $tracking
     )));
@@ -191,12 +197,27 @@ JSON;
     )));
   }
 
-  public static function recurringStripeAction($frequency = 'monthly', $tracking = NULL) {
-    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson($frequency, self::stripePayload($frequency)),
+  public static function recurringStripeAction(
+      $frequency = 'monthly',
+      $tracking = NULL,
+      $subscription = 'sub_scription',
+      $amount = NULL
+  )
+  {
+    $event_json = self::eventJson(
+      self::donationJson(
+        $frequency,
+        self::stripePayload(
+          $frequency,
+          "true",
+          $subscription
+        ),
+        $amount
+        ),
       self::trackingFields($tracking),
       $tracking
-    )));
+    );
+    return new CRM_WeAct_Action_Proca(json_decode($event_json));
   }
 
   public static function recurringPaypalAction($tracking = NULL) {

@@ -46,7 +46,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
-    $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage', 'is_test' => $is_test]);
+    $this->assertExists('Contribution', ['trxn_id' => 'ch_yetanothercharge', 'is_test' => $is_test]);
   }
 
   /**
@@ -59,8 +59,8 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
     $this->assertExists('ContributionRecur', ['trxn_id' => $sub_id, 'frequency_unit' => $crmFrequency]);
-    $this->assertExists('Contribution', ['trxn_id' => 'in_thevoice']);
-    $this->assertExists('StripeCustomer', ['contact_id' => $this->contactId]);
+    $this->assertExists('Contribution', ['trxn_id' => 'ch_yetanothercharge']);
+    # $this->assertExists('StripeCustomer', ['contact_id' => $this->contactId]);
   }
 
   public function testProcaSepaOneoff() {
@@ -89,6 +89,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertExists('Contribution', ['trxn_id' => 'S0M31D']);
   }
 
+  // this could die, but doesn't have to
   public function testHoudiniStripeRecur() {
     $action = CRM_WeAct_Action_HoudiniTest::recurringStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();

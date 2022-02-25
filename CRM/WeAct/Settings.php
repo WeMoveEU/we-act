@@ -89,6 +89,11 @@ class CRM_WeAct_Settings {
         'name' => "Paypal-button",
         'is_test' => 0,
       ])['id'],
+      'stripe' => civicrm_api3('PaymentProcessor', 'getsingle', [
+        'return' => ["id"],
+        'name' => "Credit Card",
+        'is_test' => 0,
+      ])['id'],
     ];
   }
 
@@ -143,6 +148,6 @@ class CRM_WeAct_Settings {
     if (array_key_exists($locale, $this->emailGreetingIds)) {
       return $this->emailGreetingIds[$locale][''];
     }
-    return 0;
+    return NULL;
   }
 }
