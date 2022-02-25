@@ -87,6 +87,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
       else {
         $charge_id = $this->_lookupCharge($json_action->donation->payload->paymentIntent->response);
       }
+      # this becomes civicrm_contribution.trxn_id
       $donation->paymentId = $charge_id;
       if ($donation->frequency == 'one-off') {
         $donation->donationId = $donation->paymentId;
