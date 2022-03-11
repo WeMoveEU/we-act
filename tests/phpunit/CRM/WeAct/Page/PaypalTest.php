@@ -12,7 +12,7 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
   }
 
   public function testNewRecurringPayment() {
-    $action = CRM_WeAct_Action_ProcaTest::recurringPaypalAction();
+    $action = CRM_WeAct_Action_DataFactory::recurringPaypalAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 

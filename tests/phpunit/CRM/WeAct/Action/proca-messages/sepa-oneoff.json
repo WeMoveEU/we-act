@@ -1,0 +1,68 @@
+{
+    "action": {
+        "actionType": "donate",
+        "createdAt": "2022-03-11T12:36:38Z",
+        "customFields": {
+            "amount": 2,
+            "campaign": 1339,
+            "frequency": "oneoff",
+            "initialAmount": 8,
+            "language": "en",
+            "paymentMethod": "sepa",
+            "speakoutCampaign": 1339
+        },
+        "donation": {
+            "amount": 200,
+            "currency": "EUR",
+            "frequencyUnit": "one_off",
+            "payload": {
+                "iban": "DE89370400440532013000",
+                "provider": "sepa"
+            }
+        },
+        "testing": false
+    },
+    "actionId": 329,
+    "actionPage": {
+        "locale": "fr",
+        "name": "birds/minimumbasicseeds",
+        "supporterConfirmTemplate": null,
+        "thankYouTemplate": "3568892",
+        "thankYouTemplateRef": null
+    },
+    "actionPageId": 1,
+    "campaign": {
+        "externalId": null,
+        "name": "letsdoit",
+        "title": "Let's do it!"
+    },
+    "campaignId": 1,
+    "contact": {
+        "contactRef": "FBL1fOkp3874Ffhy3KHqO3yvSPx10HYR3f_6zywfv_s",
+        "email": "aaronelliotross+ruquda@gmail.com",
+        "firstName": "Catherine",
+        "lastName": "Keith"
+    },
+    "org": {
+        "name": "WeMove",
+        "title": "WeMove"
+    },
+    "orgId": 2,
+    "personalInfo": null,
+    "privacy": {
+        "emailStatus": null,
+        "emailStatusChanged": null,
+        "givenAt": "2022-03-11T12:36:38Z",
+        "optIn": false,
+        "withConsent": true
+    },
+    "schema": "proca:action:2",
+    "stage": "deliver",
+    "tracking": {
+        "campaign": "act.not-a2.eu/campaign-dashboard",
+        "content": "",
+        "location": "https://act.not-a2.eu/campaigns/2022-spring-fundraising-update",
+        "medium": "act.not-a2.eu",
+        "source": "referrer"
+    }
+}
