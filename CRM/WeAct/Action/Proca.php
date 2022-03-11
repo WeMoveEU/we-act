@@ -8,11 +8,12 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $this->createdAt = $json_msg->action->createdAt;
     $this->actionPageId = $json_msg->actionPageId;
     $this->actionPageName = $json_msg->actionPage->name;
-    $this->language = $this->determineLanguage($json_msg->actionPage->locale);
-    $this->contact = $this->buildContact(json_decode($json_msg->contact->payload));
+    $this->contact = $this->buildContact($json_msg->contact);
+    $this->language = $this->contact->determineLanguage($json_msg); // ->actionPage->locale);
+
     $this->details = $this->buildDonation($json_msg->actionId, $json_msg->action);
 
-    $this->locationId = @$json_msg->action->fields->speakoutCampaign;
+    $this->locationId = @$json_msg->action->customFields->speakoutCampaign;
     if (property_exists($json_msg, 'tracking') && $json_msg->tracking) {
       $this->utm = [
         'source' => @$json_msg->tracking->source,
@@ -31,8 +32,12 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $contact->firstname = trim($json_contact->firstName);
     $contact->lastname = trim($json_contact->lastName);
     $contact->email = trim($json_contact->email);
-    $contact->postcode = trim($json_contact->postcode);
-    $contact->country = strtoupper($json_contact->country);
+    if (property_exists($json_contact, 'postcode')) {
+      $contact->postcode = trim($json_contact->postcode);
+    }
+    if (property_exists($json_contact, 'country')) {
+      $contact->country = strtoupper($json_contact->country);
+    }
     return $contact;
   }
 
@@ -42,11 +47,16 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
 
     $donation = new CRM_WeAct_Action_Donation();
     $donation->createdAt = $json_action->createdAt;
-    $donation->status = 'Completed'; //FIXME $statusMap[$json_action->fields->status];
+    $donation->status = 'Completed'; //FIXME $statusMap[$json_action->customFields->status];
     $donation->amount = intval($json_action->donation->amount) / 100;
     $donation->fee = 0;
     $donation->currency = strtoupper($json_action->donation->currency);
-    $donation->frequency = $frequencyMap[$json_action->donation->frequencyUnit];
+    if (@$frequencyMap[$json_action->donation->frequencyUnit]) {
+      $donation->frequency = $frequencyMap[$json_action->donation->frequencyUnit];
+    }
+    else {
+      $donation->frequency = 'one-off';
+    }
     $donation->isTest = FALSE;
 
     $provider = $json_action->donation->payload->provider;
@@ -82,12 +92,12 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     return $donation;
   }
 
-  protected function determineLanguage($procaLanguage) {
-    $language = strtoupper($procaLanguage);
-    $countryLangMapping = Civi::settings()->get('country_lang_mapping');
-    if (array_key_exists($language, $countryLangMapping)) {
-      return $countryLangMapping[$language];
-    }
-    return 'en_GB';
-  }
+  // protected function determineLanguage($procaLanguage) {
+  //   $language = strtoupper($procaLanguage);
+  //   $countryLangMapping = Civi::settings()->get('country_lang_mapping');
+  //   if (array_key_exists($language, $countryLangMapping)) {
+  //     return $countryLangMapping[$language];
+  //   }
+  //   return 'en_GB';
+  // }
 }

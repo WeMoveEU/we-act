@@ -5,6 +5,13 @@ use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;
 
+
+
+define('CIVICRM_SPEAKOUT_USERS', [
+  'speakout' => ['email' => 'api@speakout', 'password' => 'p4ss'],
+  'act.not-a2.eu' =>  ['email' => 'api@speakout', 'password' => 'p4ss']
+]);
+
 /**
  * Base class for tests with common set-up
  *
@@ -34,6 +41,8 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
 
   public function setUp() : void {
     parent::setUp();
+
+
     $consentRequests = [];
     $this->consentRequests = &$consentRequests;
 

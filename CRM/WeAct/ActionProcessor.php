@@ -8,12 +8,16 @@ class CRM_WeAct_ActionProcessor {
     $this->requestConsents = $request_consents;
   }
 
-  public function process(CRM_WeAct_Action $action) {
-    if ($action->actionType == 'donate') {
-      $campaign = $this->campaignCache->getFromAction($action);
-      $contact_id = $this->getOrCreateContact($action, $campaign['id']);
-      $this->processDonation($action, $campaign['id'], $contact_id);
+  public function process(CRM_WeAct_Action $action, $campaign_id=NULL) {
+    if ($action->actionType != 'donate') {
+      return ;
     }
+    if (is_null($campaign_id)) {
+      $campaign = $this->campaignCache->getFromAction($action);
+      $campaign_id = $campaign['id'];
+    }
+    $contact_id = $this->getOrCreateContact($action, $campaign_id);
+    return $this->processDonation($action, $campaign_id, $contact_id);
   }
 
   public function getOrCreateContact(CRM_WeAct_Action $action, $campaign_id) {
@@ -50,19 +54,35 @@ class CRM_WeAct_ActionProcessor {
   }
 
   public function processDonation($action, $campaign_id, $contact_id) {
-    CRM_Core_Transaction::create(TRUE)->run(function(CRM_Core_Transaction $tx) use ($action, $campaign_id, $contact_id) {
+    $result = NULL;
+    CRM_Core_Transaction::create(TRUE)->run(function(CRM_Core_Transaction $tx) use ($action, $campaign_id, $contact_id, &$result) {
+
       $donation = $action->details;
+
       if ($donation->isRecurring()) {
         $recur_id = $donation->findMatchingContribRecur();
         if (!$recur_id) {
-          $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
-        } else if (!$donation->findMatchingContrib()) {
-          $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm, $recur_id);
+          $result = $donation->createContribRecur($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+          return;
         }
+        if (!$donation->findMatchingContrib()) {
+          $result = $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm, $recur_id);
+          return;
+        }
+        return; // DON'T FALL THROUGH
       }
-      else if (!$donation->findMatchingContrib()) {
-        $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+
+      if (!$donation->findMatchingContrib()) {
+        $result = $donation->createContrib($campaign_id, $contact_id, $action->actionPageName, $action->location, $action->utm);
+        return;
       }
+
+      CRM_Core_Error::debug_log_message("Couldn't figure out what to do with {json_encode($action)} in ActionProcessor->processDonation");
+
+      return;
+
     });
+
+    return $result;
   }
 }
