@@ -42,7 +42,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
    * @dataProvider isTestProvider
    */
   public function testProcaStripeOneoff($is_test) {
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(NULL, $is_test);
+    $action = CRM_WeAct_Action_DataFactory::oneoffStripeAction(NULL, $is_test);
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
@@ -54,7 +54,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
    */
   public function testProcaStripeRecur($frequency, $crmFrequency) {
     $sub_id = 'sub_scription';
-    $action = CRM_WeAct_Action_ProcaTest::recurringStripeAction($frequency);
+    $action = CRM_WeAct_Action_DataFactory::recurringStripeAction($frequency);
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
@@ -64,7 +64,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
   }
 
   public function testProcaSepaOneoff() {
-    $action = CRM_WeAct_Action_ProcaTest::oneoffSepaAction();
+    $action = CRM_WeAct_Action_DataFactory::oneoffSepaAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
@@ -73,7 +73,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
   }
 
   public function testProcaPaypalOneoff() {
-    $action = CRM_WeAct_Action_ProcaTest::oneoffPaypalAction();
+    $action = CRM_WeAct_Action_DataFactory::oneoffPaypalAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 
@@ -81,7 +81,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
   }
 
   public function testProcaPaypalRecur() {
-    $action = CRM_WeAct_Action_ProcaTest::recurringPaypalAction();
+    $action = CRM_WeAct_Action_DataFactory::recurringPaypalAction();
     $processor = new CRM_WeAct_ActionProcessor();
     $processor->processDonation($action, $this->campaignId, $this->contactId);
 

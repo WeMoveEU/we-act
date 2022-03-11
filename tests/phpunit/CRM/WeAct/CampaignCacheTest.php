@@ -24,7 +24,7 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
   }
 
   public function testProcaCampaignNew() {
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction();
+    $action = CRM_WeAct_Action_DataFactory::oneoffStripeAction();
     $camp_cache = $this->buildCache(NULL);
     $campaign = $camp_cache->getFromAction($action);
     $this->assertGreaterThan(0, $campaign['id']);
@@ -40,7 +40,7 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     ]);
     $mailingId = $mailing_result['id'];
 
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(CRM_WeAct_Action_ProcaTest::utmTracking("civimail-$mailingId"));
+    $action = CRM_WeAct_Action_DataFactory::oneoffStripeAction(CRM_WeAct_Action_DataFactory::utmTracking("civimail-$mailingId"));
     $camp_cache = $this->buildCache(NULL);
     $campaign = $camp_cache->getFromAction($action);
     $this->assertEquals($this->campaignId, $campaign['id']);
@@ -52,7 +52,7 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     ]);
     $mailingId = $mailing_result['id'];
 
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(CRM_WeAct_Action_ProcaTest::utmTracking("civimail-$mailingId"));
+    $action = CRM_WeAct_Action_DataFactory::oneoffStripeAction(CRM_WeAct_Action_DataFactory::utmTracking("civimail-$mailingId"));
     $camp_cache = $this->buildCache(NULL);
     $campaign = $camp_cache->getFromAction($action);
     $this->assertEquals($campaign['title'], 'Transient campaign');
@@ -68,7 +68,7 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
   }
 
   public function testProcaCampaignFromSpeakoutNew() {
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(CRM_WeAct_Action_ProcaTest::speakoutTracking());
+    $action = CRM_WeAct_Action_DataFactory::oneoffStripeAction(CRM_WeAct_Action_DataFactory::speakoutTracking());
     define('CIVICRM_SPEAKOUT_USERS', ['speakout' => ['email' => 'api@speakout', 'password' => 'p4ss']]);
     $mockHandler = new MockHandler([
       new Response(200, [], CRM_WeAct_SpeakoutTest::simpleEnglishPetitionJSON(666)),
@@ -82,7 +82,7 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
   }
 
   public function testProcaCampaignFromSpeakoutExistingWithoutTracking() {
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction(CRM_WeAct_Action_ProcaTest::speakoutTrackingNoUtm(42));
+    $action = CRM_WeAct_Action_DataFactory::oneoffStripeAction(CRM_WeAct_Action_DataFactory::speakoutTrackingNoUtm(42));
     $camp_cache = $this->buildCache(NULL);
     $campaign = $camp_cache->getFromAction($action);
     $this->assertEquals($this->campaignId, $campaign['id']);
