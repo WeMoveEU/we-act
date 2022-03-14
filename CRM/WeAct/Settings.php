@@ -16,6 +16,7 @@ class CRM_WeAct_Settings {
     $this->paymentProcessorIds = $this->fetchPaymentProcessors();
     $this->contributionStatusIds = $this->fetchContributionStatus();
     $this->customFields = $this->fetchCustomFields();
+    $this->countryCodeToLocale = Civi::settings()->get('country_lang_mapping');
   }
 
   public static function instance() {

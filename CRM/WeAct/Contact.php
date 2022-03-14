@@ -58,28 +58,6 @@ class CRM_WeAct_Contact {
     return $contact;
   }
 
-  public function determineLanguage($action) {
-    // This looks like Proca specific code ... HRM.
-
-    $page = $action->actionPage;
-    $action = $action->action;
-
-    if (property_exists($action->customFields, 'language')) {
-      $language = $action->customFields->language;
-    }
-    else  {
-      $language = $page->locale;
-    }
-
-    $language = strtoupper($language);
-    $countryLangMapping = Civi::settings()->get('country_lang_mapping');
-
-    if (array_key_exists($language, $countryLangMapping)) {
-      return $countryLangMapping[$language];
-    }
-
-    return 'en_GB';
-  }
 
   public function createOrUpdate($language, $source) {
     if ($this->isAnonymous()) {

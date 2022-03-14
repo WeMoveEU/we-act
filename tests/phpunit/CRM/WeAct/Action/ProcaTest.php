@@ -16,36 +16,154 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
     $this->settings = CRM_WeAct_Settings::instance();
   }
 
-  public function testSEPA() {
-    $test_contribution = json_decode(
+  public function testCard() {
+    $proca_event = json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-oneoff.json'
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-oneoff.json'
       )
     );
-    $ret = $this->_process($test_contribution);
+    $ret = $this->_process($proca_event);
 
     $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
 
     $this->assertEquals($contribution['currency'], 'EUR');
-    $this->assertEquals($contribution['total_amount'], number_format($test_contribution->action->donation->amount / 100, 2));
-    $this->assertEquals($contribution['trxn_id'], "proca_" . $test_contribution->actionId);
-    $this->assertEquals($contribution['contribution_status_id'], $this->settings->contributionStatusIds['pending']);
+    $this->assertEquals(
+      $contribution['total_amount'],
+      number_format($proca_event->action->donation->amount / 100, 2)
+    );
+    $this->assertEquals(
+      $contribution['trxn_id'],
+      $proca_event->action->donation->payload->paymentConfirm->id
+    );
+    $this->assertEquals(
+      $contribution['contribution_status_id'],
+      $this->settings->contributionStatusIds['completed']
+    );
+    $this->assertEquals(
+      $contribution['contribution_recur_id'],
+      NULL
+    );
+
+    // payment token?
+    // customer ?
+    // Payment? Transaction? What other records are created?
 
     $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
-    $this->assertEquals($contact['last_name'], $test_contribution->contact->lastName);
-    $this->assertEquals($contact['first_name'], $test_contribution->contact->firstName);
+    $test_contact = $proca_event->contact;
+    $this->assertEquals($contact['last_name'], $test_contact->lastName);
+
+    // test in other places?
+
+    $address = civicrm_api3('Address', 'getsingle', ["contact_id" => $contact['id']]);
+    $this->assertEquals($address['postal_code'], $test_contact->postcode);
+    $this->assertEquals(
+      $this->settings->countryIds[ $test_contact->country],
+      $address['country_id']
+     );
 
     $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
-    $this->assertEquals($email['email'], $test_contribution->contact->email);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+  }
+
+
+  public function testSEPA() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-oneoff.json'
+      )
+    );
+    $ret = $this->_process($proca_event);
+
+    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
+
+    $this->assertEquals(
+      $contribution['currency'],
+      'EUR'
+    );
+    $this->assertEquals(
+      $contribution['total_amount'],
+      number_format(
+        $proca_event->action->donation->amount / 100,
+        2
+      )
+    );
+    $this->assertEquals(
+      $contribution['trxn_id'],
+      "proca_" . $proca_event->actionId
+    );
+    $this->assertEquals(
+      $contribution['contribution_status_id'],
+      $this->settings->contributionStatusIds['pending']
+    );
+    $this->assertEquals(
+      $contribution['contribution_recur_id'],
+      NULL
+    );
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
+    $this->assertEquals($contact['last_name'], $proca_event->contact->lastName);
+    $this->assertEquals($contact['first_name'], $proca_event->contact->firstName);
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
 
     $mandate = civicrm_api3('SepaMandate', 'getsingle', ['entity_table' => 'civicrm_contribution', 'entity_id' => $contribution['id']]);
     $this->assertEquals($mandate['type'], 'OOFF');
-    $this->assertEquals($mandate['iban'], $test_contribution->action->donation->payload->iban);
+    $this->assertEquals($mandate['iban'], $proca_event->action->donation->payload->iban);
     $this->assertEquals($mandate['contact_id'], $contact['id']);
   }
 
+  public function testSEPARecurring() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-monthly.json'
+      )
+    );
+    $ret = $this->_process($proca_event);
+    $contribution = civicrm_api3('ContributionRecur', 'getsingle', ["id" => $ret['contrib']['id']]);
+    // print(json_encode($ret['contrib'], JSON_PRETTY_PRINT));
+
+    $this->assertEquals($contribution['currency'], 'EUR');
+    $this->assertEquals(
+      $contribution['amount'],
+      number_format($proca_event->action->donation->amount / 100, 2)
+    );
+    $this->assertEquals($contribution['trxn_id'], "proca_" . $proca_event->actionId);
+    $this->assertEquals(
+      $contribution['contribution_status_id'],
+      $this->settings->contributionStatusIds['pending']
+    );
+
+    $this->assertEquals($contribution['frequency_unit'], 'month');
+    $this->assertEquals($contribution['frequency_interval'], 1);
+    $this->assertEquals(
+      substr($contribution['start_date'], 0, 10),
+      substr($proca_event->action->createdAt, 0, 10)
+    ); // Hrm, not sure?
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
+    $this->assertEquals($contact['last_name'], $proca_event->contact->lastName);
+    $this->assertEquals($contact['first_name'], $proca_event->contact->firstName);
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+
+    $mandate = civicrm_api3(
+      'SepaMandate',
+      'getsingle',
+      [
+        'entity_table' => 'civicrm_contribution_recur',
+        'entity_id' => $contribution['id']
+      ]
+    );
+    $this->assertEquals($mandate['type'], 'RCUR');
+    $this->assertEquals($mandate['iban'], $proca_event->action->donation->payload->iban);
+    $this->assertEquals($mandate['contact_id'], $contact['id']);
+  }
+
+
   public function testTracking() {
-    $test_contribution = json_decode(
+    $proca_event = json_decode(
       file_get_contents(
         'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-oneoff.json'
       )
@@ -53,54 +171,31 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
     $utm = (object) [
       'source' => 'testing-source',
       'medium' => 'testing-medium',
-      'campaign' => 'testing-campaign',
-      'content' => 'testing-content',
-      // in proca messages we also have location .. ?
+      'campaign' => 'testing-campaign'
     ];
-    $test_contribution->tracking = $utm;
-    $ret = $this->_process($test_contribution);
+    $proca_event->tracking = $utm;
+    $ret = $this->_process($proca_event);
 
     $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
 
-
-    $this->assertEquals($contribution[$this->settings->customFields['utm_source']], $utm->source);
-    $this->assertEquals($contribution[$this->settings->customFields['utm_medium']], $utm->medium);
-    $this->assertEquals($contribution[$this->settings->customFields['utm_campaign']], $utm->campaign);
-  }
-
-  public function testSEPARecurring() {
-    $test_contribution = json_decode(
-      file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-monthly.json'
-      )
+    $this->assertEquals(
+      $contribution[$this->settings->customFields['utm_source']],
+      $utm->source
     );
-    $ret = $this->_process($test_contribution);
+    $this->assertEquals(
+      $contribution[$this->settings->customFields['utm_medium']],
+      $utm->medium
+    );
+    $this->assertEquals(
+      $contribution[$this->settings->customFields['utm_campaign']],
+      $utm->campaign
+    );
 
-    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
-
-    $this->assertEquals($contribution['currency'], 'EUR');
-    $this->assertEquals($contribution['total_amount'], number_format($test_contribution->action->donation->amount / 100, 2));
-    $this->assertEquals($contribution['trxn_id'], "proca_" . $test_contribution->actionId);
-    $this->assertEquals($contribution['contribution_status_id'], $this->settings->contributionStatusIds['pending']);
-
-    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
-    $this->assertEquals($contact['last_name'], $test_contribution->contact->lastName);
-    $this->assertEquals($contact['first_name'], $test_contribution->contact->firstName);
-
-    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
-    $this->assertEquals($email['email'], $test_contribution->contact->email);
-
-    $mandate = civicrm_api3('SepaMandate', 'getsingle', ['entity_table' => 'civicrm_contribution', 'entity_id' => $contribution['id']]);
-    $this->assertEquals($mandate['type'], 'OOFF');
-    $this->assertEquals($mandate['iban'], $test_contribution->action->donation->payload->iban);
-    $this->assertEquals($mandate['contact_id'], $contact['id']);
   }
-
-
 
   public function testDetermineLanguage() {
     // TODO
-    $this->assert(FALSE);
+
   }
 
   // shared stuff

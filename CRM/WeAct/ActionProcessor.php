@@ -20,39 +20,6 @@ class CRM_WeAct_ActionProcessor {
     return $this->processDonation($action, $campaign_id, $contact_id);
   }
 
-  public function getOrCreateContact(CRM_WeAct_Action $action, $campaign_id) {
-    if ($action->contact->isAnonymous()) {
-      return $this->settings->anonymousId;
-    }
-
-    $contact_ids = $action->contact->getMatchingIds();
-    if (count($contact_ids) == 0) {
-      $contact = $action->contact->create($action->language, $action->source());
-    } else {
-      //There shouldn't be more than one contact, but if does we'll simply use the "oldest" one
-      //TODO send an alert to someone that a merge is required if more than one id
-      $contact_id = min($contact_ids);
-      $contact = $action->contact->getAndUpdate($contact_id);
-    }
-
-    Civi::log()->debug("Checking for group membership - {$contact['api.GroupContact.get']['count']}");
-
-    //Membership was retrieved from a joined query to GroupContact for the members group
-    if ($this->requestConsents && $contact['api.GroupContact.get']['count'] == 0) {
-      Civi::log()->debug("Sending consent request to contact {$contact['id']}");
-      $consentParams = [
-        'contact_id' => $contact['id'],
-        'campaign_id' => $campaign_id,
-        'utm_source' => CRM_Utils_Array::value('source', $action->utm),
-        'utm_medium' => CRM_Utils_Array::value('medium', $action->utm),
-        'utm_campaign' => CRM_Utils_Array::value('campaign', $action->utm),
-      ];
-      civicrm_api3('Gidipirus', 'send_consent_request', $consentParams);
-    }
-
-    return $contact['id'];
-  }
-
   public function processDonation($action, $campaign_id, $contact_id) {
     $result = NULL;
     CRM_Core_Transaction::create(TRUE)->run(function(CRM_Core_Transaction $tx) use ($action, $campaign_id, $contact_id, &$result) {
@@ -84,5 +51,39 @@ class CRM_WeAct_ActionProcessor {
     });
 
     return $result;
+  }
+
+
+  public function getOrCreateContact(CRM_WeAct_Action $action, $campaign_id) {
+    if ($action->contact->isAnonymous()) {
+      return $this->settings->anonymousId;
+    }
+
+    $contact_ids = $action->contact->getMatchingIds();
+    if (count($contact_ids) == 0) {
+      $contact = $action->contact->create($action->language, $action->source());
+    } else {
+      //There shouldn't be more than one contact, but if does we'll simply use the "oldest" one
+      //TODO send an alert to someone that a merge is required if more than one id
+      $contact_id = min($contact_ids);
+      $contact = $action->contact->getAndUpdate($contact_id);
+    }
+
+    Civi::log()->debug("Checking for group membership - {$contact['api.GroupContact.get']['count']}");
+
+    //Membership was retrieved from a joined query to GroupContact for the members group
+    if ($this->requestConsents && $contact['api.GroupContact.get']['count'] == 0) {
+      Civi::log()->debug("Sending consent request to contact {$contact['id']}");
+      $consentParams = [
+        'contact_id' => $contact['id'],
+        'campaign_id' => $campaign_id,
+        'utm_source' => CRM_Utils_Array::value('source', $action->utm),
+        'utm_medium' => CRM_Utils_Array::value('medium', $action->utm),
+        'utm_campaign' => CRM_Utils_Array::value('campaign', $action->utm),
+      ];
+      civicrm_api3('Gidipirus', 'send_consent_request', $consentParams);
+    }
+
+    return $contact['id'];
   }
 }

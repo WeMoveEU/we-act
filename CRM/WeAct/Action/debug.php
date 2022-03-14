@@ -1,4 +1,3 @@
 <?php
 
-$a  = (object) [' a' => 1, 'b' => 2];
-print($a->b);
+print(json_encode(Civi::settings()->get('country_lang_mapping'), 128));

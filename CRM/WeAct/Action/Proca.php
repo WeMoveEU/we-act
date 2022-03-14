@@ -92,6 +92,38 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     return $donation;
   }
 
+  public function determineLanguage($action) {
+    /*
+      Hrm, I'm very confused about what to do here. Sometimes we have a Country,
+      sometimes we don't. Language and Locale are used inter-changeably
+      sometimes.
+
+      We have Language based lists, so we should try hardest to get the language and
+      only secondarily the country.
+
+      And we should add Country to add the forms. Duh.
+    */
+    $page = $action->actionPage;
+    $action = $action->action;
+
+    if (property_exists($action->customFields, 'language')) {
+      $language = $action->customFields->language;
+    }
+    else  {
+      $language = $page->locale;
+    }
+    $language = strtoupper($language);
+
+    $settings = CRM_WeAct_Settings::instance();
+    $countryLangMapping = $settings->countryCodeToLocale;
+
+    if (array_key_exists($language, $countryLangMapping)) {
+      return $countryLangMapping[$language];
+    }
+
+    return 'en_GB';
+  }
+
   // protected function determineLanguage($procaLanguage) {
   //   $language = strtoupper($procaLanguage);
   //   $countryLangMapping = Civi::settings()->get('country_lang_mapping');
