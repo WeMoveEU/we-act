@@ -9,11 +9,11 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $this->actionPageId = $json_msg->actionPageId;
     $this->actionPageName = $json_msg->actionPage->name;
     $this->contact = $this->buildContact($json_msg->contact);
-    $this->language = $this->determineLanguage($json_msg); // ->actionPage->locale);
+    $this->language = $this->contact->determineLanguage($json_msg); // ->actionPage->locale);
 
     $this->details = $this->buildDonation($json_msg->actionId, $json_msg->action);
-    $this->locationId = @$json_msg->action->customFields->speakoutCampaign;
 
+    $this->locationId = @$json_msg->action->customFields->speakoutCampaign;
     if (property_exists($json_msg, 'tracking') && $json_msg->tracking) {
       $this->utm = [
         'source' => @$json_msg->tracking->source,

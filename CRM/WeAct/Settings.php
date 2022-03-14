@@ -11,10 +11,12 @@ class CRM_WeAct_Settings {
     $this->emailGreetingIds = $this->fetchEmailGreetingIds();
     //Mapping of country code => country id
     $this->countryIds = $this->fetchCountryIds();
-    $this->financialTypeId = 1; //FIXME
+    $this->financialTypeId = 1; // FIXME
     $this->paymentInstrumentIds = $this->fetchPaymentInstruments();
     $this->paymentProcessorIds = $this->fetchPaymentProcessors();
+    $this->contributionStatusIds = $this->fetchContributionStatus();
     $this->customFields = $this->fetchCustomFields();
+    $this->countryCodeToLocale = Civi::settings()->get('country_lang_mapping');
   }
 
   public static function instance() {
@@ -53,6 +55,31 @@ class CRM_WeAct_Settings {
         'return' => ['value'],
         'label' => 'Stripe',
         'option_group_id' => 'payment_instrument'
+      ])['value']
+    ];
+  }
+
+  protected function fetchContributionStatus() {
+    return  [
+      "completed" => civicrm_api3('OptionValue', 'getsingle', [
+        'return' => ['value'],
+        'label' => 'Completed',
+        'option_group_id' => 'contribution_status'
+      ])['value'],
+      "pending" =>  civicrm_api3('OptionValue', 'getsingle', [
+        'return' => ['value'],
+        'label' => 'Pending',
+        'option_group_id' => 'contribution_status'
+      ])['value'],
+      "failed" =>  civicrm_api3('OptionValue', 'getsingle', [
+        'return' => ['value'],
+        'label' => 'Failed',
+        'option_group_id' => 'contribution_status'
+      ])['value'],
+      "refunded" =>  civicrm_api3('OptionValue', 'getsingle', [
+        'return' => ['value'],
+        'label' => 'Refunded',
+        'option_group_id' => 'contribution_status'
       ])['value']
     ];
   }
@@ -143,6 +170,6 @@ class CRM_WeAct_Settings {
     if (array_key_exists($locale, $this->emailGreetingIds)) {
       return $this->emailGreetingIds[$locale][''];
     }
-    return 0;
+    return 0; # ???
   }
 }
