@@ -1,6 +1,6 @@
 <?php
 
-class CRM_WeAct_Action_DataFactory {
+class CRM_WeAct_Action_ProcaMessageFactory {
 
   protected static function sepaPayload() {
     return <<<JSON
@@ -52,16 +52,7 @@ JSON;
     }
 JSON;
   }
-  protected static function donationJson($frequency, $payload) {
-    return <<<JSON
-    {
-        "amount": "1000",
-        "currency": "EUR",
-        "frequencyUnit": "$frequency",
-        "payload": $payload
-    }
-JSON;
-  }
+
 
   protected static function trackingFields($tracking) {
     if (isset($tracking['speakout_campaign'])) {
@@ -72,7 +63,7 @@ JSON;
   }
 
   public static function utmTracking($source = "tester") {
-    return [ 'utm' => [
+    return (object) [ 'utm' => [
         "campaign" => "unit-tests",
         "source" => $source,
         "medium" => "phpunit"
@@ -81,7 +72,7 @@ JSON;
 
   public static function speakoutTracking() {
     return [
-      'speakout_campaign' => '666',
+      'speakout_campaign' => '1339',
       'utm' => [
         "campaign" => "unit-tests",
         "source" => "code",
@@ -114,7 +105,7 @@ JSON;
         "actionPage":
         {
             "locale": "pl",
-            "name": "fund/us",
+            "name": "birds/minimumbasicseeds",
             "thankYouTemplateRef": null
         },
         "actionPageId": 3,
@@ -146,6 +137,8 @@ JSON;
   }
 
   public static function oneoffSepaAction($tracking = NULL) {
+
+
     return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
       self::donationJson("one_off", self::sepaPayload()),
       self::trackingFields($tracking),
@@ -154,11 +147,40 @@ JSON;
   }
 
   public static function oneoffStripeAction($tracking = NULL, $is_test = FALSE) {
-    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("one_off", self::stripePayload("one_off", $is_test ? "false" : "true")),
-      self::trackingFields($tracking),
-      $tracking
-    )));
+    return json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-oneoff.json'
+      )
+    );
+
+  //   // TODO - where is this used?
+  //   if ($is_test == FALSE) {
+  //     $proca_event->action->donation->payload->paymentConfirm->livemode = $is_test;
+  //   }
+
+  //   if ($tracking) {
+  //     $utm = $tracking;
+  //   } else {
+  //     $utm = (object) [
+  //       'source' => 'testing-source',
+  //       'medium' => 'testing-medium',
+  //       'campaign' => 'testing-campaign'
+  //     ];
+  //   }
+  //   $proca_event->tracking = $utm;
+
+  //   return new CRM_WeAct_Action_Proca($proca_event);
+
+  //   return new CRM_WeAct_Action_Proca(json_decode(
+  //     self::eventJson(
+  //       self::donationJson(
+  //         "one_off",
+  //         self::stripePayload("one_off", $is_test ? "false" : "true")
+  //       ),
+  //       self::trackingFields($tracking),
+  //     $tracking
+  //   )
+  // ));
   }
 
   public static function oneoffPaypalAction() {

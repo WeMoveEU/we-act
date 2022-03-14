@@ -4,12 +4,12 @@
         "createdAt": "2022-03-11T13:41:30Z",
         "customFields": {
             "amount": 12,
-            "campaign": 1339,
+            "campaign": 42,
             "frequency": "oneoff",
             "initialAmount": 8,
             "language": "en",
             "paymentMethod": "stripe",
-            "speakoutCampaign": 1339
+            "speakoutCampaign": 42
         },
         "donation": {
             "amount": 1200,
