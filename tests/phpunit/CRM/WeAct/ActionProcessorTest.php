@@ -38,57 +38,6 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertConsentRequestSent();
   }
 
-  /**
-   * @dataProvider isTestProvider
-   */
-  public function testProcaStripeOneoff($is_test) {
-    $action = CRM_WeAct_Action_DataFactory::oneoffStripeAction(NULL, $is_test);
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('Contribution', ['trxn_id' => 'pi_somegarbage', 'is_test' => $is_test]);
-  }
-
-  /**
-   * @dataProvider frequencyProvider
-   */
-  public function testProcaStripeRecur($frequency, $crmFrequency) {
-    $sub_id = 'sub_scription';
-    $action = CRM_WeAct_Action_DataFactory::recurringStripeAction($frequency);
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('ContributionRecur', ['trxn_id' => $sub_id, 'frequency_unit' => $crmFrequency]);
-    $this->assertExists('Contribution', ['trxn_id' => 'in_thevoice']);
-    $this->assertExists('StripeCustomer', ['contact_id' => $this->contactId]);
-  }
-
-  public function testProcaSepaOneoff() {
-    $action = CRM_WeAct_Action_DataFactory::oneoffSepaAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('Contribution', ['trxn_id' => 'proca_5']);
-    $this->assertExists('SepaMandate', ['iban' => 'PL83101010230000261395100000']);
-  }
-
-  public function testProcaPaypalOneoff() {
-    $action = CRM_WeAct_Action_DataFactory::oneoffPaypalAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('Contribution', ['trxn_id' => 'S0M31D']);
-  }
-
-  public function testProcaPaypalRecur() {
-    $action = CRM_WeAct_Action_DataFactory::recurringPaypalAction();
-    $processor = new CRM_WeAct_ActionProcessor();
-    $processor->processDonation($action, $this->campaignId, $this->contactId);
-
-    $this->assertExists('ContributionRecur', ['trxn_id' => "I-SUBSCR1PT10N"]);
-    $this->assertExists('Contribution', ['trxn_id' => 'S0M31D']);
-  }
-
   public function testHoudiniStripeRecur() {
     $action = CRM_WeAct_Action_HoudiniTest::recurringStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();
