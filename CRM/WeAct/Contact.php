@@ -34,6 +34,7 @@ class CRM_WeAct_Contact {
   }
 
   public function create($language, $source) {
+
     $create_params = [
       'sequential' => 1,
       'contact_type' => 'Individual',
@@ -42,13 +43,22 @@ class CRM_WeAct_Contact {
       'email' => $this->email,
       'email_greeting_id' => $this->settings->getEmailGreetingId($language),
       'preferred_language' => $language,
-      'source' => $source,
-      'api.Address.create' => [
-        'location_type_id' => 1,
-        'postal_code' => $this->postcode,
-        'country_id' => $this->settings->countryIds[$this->country],
-      ]
+      'source' => $source
     ];
+
+    if ($this->country || $this->postcode) {
+      $address = [
+        'location_type_id' => 1
+      ];
+      if ($this->postcode) {
+        $address['postal_code'] = $this->postcode;
+      }
+      if ($this->country && array_key_exists($this->country, $this->settings->countryIds)) {
+        $address['country_id'] = $this->settings->countryIds[$this->country];
+      }
+      $create_params['api.Address.create'] = $address;
+    }
+
     $create_result = civicrm_api3('Contact', 'create', $create_params);
     $contact = $create_result['values'][0];
     //Indicate to caller that the contact is not in the members group
