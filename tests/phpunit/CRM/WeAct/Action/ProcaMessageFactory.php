@@ -63,10 +63,10 @@ JSON;
   }
 
   public static function utmTracking($source = "tester") {
-    return (object) [ 'utm' => [
-        "campaign" => "unit-tests",
-        "source" => $source,
-        "medium" => "phpunit"
+    return (object) ['utm' => [
+      "campaign" => "unit-tests",
+      "source" => $source,
+      "medium" => "phpunit"
     ]];
   }
 
@@ -152,35 +152,6 @@ JSON;
         'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-oneoff.json'
       )
     );
-
-  //   // TODO - where is this used?
-  //   if ($is_test == FALSE) {
-  //     $proca_event->action->donation->payload->paymentConfirm->livemode = $is_test;
-  //   }
-
-  //   if ($tracking) {
-  //     $utm = $tracking;
-  //   } else {
-  //     $utm = (object) [
-  //       'source' => 'testing-source',
-  //       'medium' => 'testing-medium',
-  //       'campaign' => 'testing-campaign'
-  //     ];
-  //   }
-  //   $proca_event->tracking = $utm;
-
-  //   return new CRM_WeAct_Action_Proca($proca_event);
-
-  //   return new CRM_WeAct_Action_Proca(json_decode(
-  //     self::eventJson(
-  //       self::donationJson(
-  //         "one_off",
-  //         self::stripePayload("one_off", $is_test ? "false" : "true")
-  //       ),
-  //       self::trackingFields($tracking),
-  //     $tracking
-  //   )
-  // ));
   }
 
   public static function oneoffPaypalAction() {
@@ -200,10 +171,10 @@ JSON;
   }
 
   public static function recurringPaypalAction($tracking = NULL) {
-    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("monthly", self::paypalPayload("monthly")),
-      self::trackingFields($tracking),
-      $tracking
-    )));
+    return json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/paypal-monthly.json'
+      )
+    );
   }
 }

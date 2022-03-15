@@ -32,6 +32,7 @@ class CRM_WeAct_Page_Paypal extends CRM_Core_Page {
           'receive_date' => $json_body->resource->create_time,
           'trxn_id' => $json_body->resource->id,
         ];
+
         civicrm_api3('Contribution', 'repeattransaction', $repeat_params);
       }
     }

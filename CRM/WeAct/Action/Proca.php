@@ -15,11 +15,17 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $this->locationId = @$json_msg->action->customFields->speakoutCampaign;
 
     if (property_exists($json_msg, 'tracking') && $json_msg->tracking) {
-      $this->utm = [
-        'source' => @$json_msg->tracking->source,
-        'medium' => @$json_msg->tracking->medium,
-        'campaign' => @$json_msg->tracking->campaign,
-      ];
+      $this->utm = [];
+      $tracking = $json_msg->tracking;
+      foreach (['source', 'medium', 'campaign', 'location'] as $key) {
+        if (
+          property_exists($tracking, $key)
+          && $tracking->{$key}
+          && $tracking->{$key} != "unknown"
+        ) {
+          $this->utm[$key] = $tracking->{$key};
+        }
+      }
       $this->location = @$json_msg->tracking->location;
     } else {
       $this->utm = NULL;
@@ -53,8 +59,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $donation->currency = strtoupper($json_action->donation->currency);
     if (@$frequencyMap[$json_action->donation->frequencyUnit]) {
       $donation->frequency = $frequencyMap[$json_action->donation->frequencyUnit];
-    }
-    else {
+    } else {
       $donation->frequency = 'one-off';
     }
     $donation->isTest = FALSE;
@@ -80,12 +85,13 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
         $donation->providerDonorId = $json_action->donation->payload->customerId;
       }
     } else if ($provider == "paypal") {
-      $donation->paymentId = $json_action->donation->payload->order->id;
+      $donation->paymentId = $json_action->donation->payload->response->orderID;
       $donation->paymentMethod = 'paypal';
       if ($donation->frequency == 'one-off') {
-        $donation->donationId = $donation->paymentId;
+
+        $donation->donationId = $donation->paymentId; /// ???
       } else {
-        $donation->donationId = $json_action->donation->payload->subscriptionId;
+        $donation->donationId = $json_action->donation->payload->response->subscriptionID;
       }
     }
 
@@ -108,8 +114,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
 
     if (property_exists($action->customFields, 'language')) {
       $language = $action->customFields->language;
-    }
-    else  {
+    } else {
       $language = $page->locale;
     }
     $language = strtoupper($language);
