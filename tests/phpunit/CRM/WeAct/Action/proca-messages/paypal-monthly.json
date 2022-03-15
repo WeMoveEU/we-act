@@ -1,0 +1,174 @@
+{
+    "action": {
+        "actionType": "donate",
+        "createdAt": "2022-03-14T15:24:05Z",
+        "customFields": {
+            "amount": 8,
+            "campaign": 1339,
+            "frequency": "monthly",
+            "initialAmount": 8,
+            "language": "en",
+            "speakoutCampaign": 1339
+        },
+        "donation": {
+            "amount": 800,
+            "currency": "EUR",
+            "frequencyUnit": "monthly",
+            "payload": {
+                "formValues": {
+                    "amount": 8,
+                    "campaign": 1339,
+                    "frequency": "monthly",
+                    "initialAmount": 8,
+                    "language": "en",
+                    "speakoutCampaign": 1339
+                },
+                "provider": "paypal",
+                "response": {
+                    "facilitatorAccessToken": "A21AAKEs1N-q3koa_o_XrC6wykygW5-WZxpkDibCmofKiyLH97D8Ypojdc5keRkuvOuzAPCJE0Pg7jKnoT8g43bKy9Ew9ngaw",
+                    "orderID": "2V34040528546400P",
+                    "subscriptionID": "I-YDTHJ9C365VL"
+                },
+                "subscription": {
+                    "billing_info": {
+                        "cycle_executions": [
+                            {
+                                "current_pricing_scheme_version": 1,
+                                "cycles_completed": 1,
+                                "cycles_remaining": 0,
+                                "sequence": 1,
+                                "tenure_type": "REGULAR",
+                                "total_cycles": 0,
+                                "total_price_per_cycle": {
+                                    "gross_amount": {
+                                        "currency_code": "EUR",
+                                        "value": "8.0"
+                                    },
+                                    "shipping_amount": {
+                                        "currency_code": "EUR",
+                                        "value": "0.0"
+                                    },
+                                    "tax_amount": {
+                                        "currency_code": "EUR",
+                                        "value": "0.0"
+                                    },
+                                    "total_item_amount": {
+                                        "currency_code": "EUR",
+                                        "value": "8.0"
+                                    }
+                                }
+                            }
+                        ],
+                        "failed_payments_count": 0,
+                        "last_payment": {
+                            "amount": {
+                                "currency_code": "EUR",
+                                "value": "8.0"
+                            },
+                            "time": "2022-03-14T15:24:02Z"
+                        },
+                        "next_billing_time": "2022-04-14T10:00:00Z",
+                        "outstanding_balance": {
+                            "currency_code": "EUR",
+                            "value": "0.0"
+                        }
+                    },
+                    "create_time": "2022-03-14T15:24:02Z",
+                    "id": "I-YDTHJ9C365VL",
+                    "links": [
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-YDTHJ9C365VL/cancel",
+                            "method": "POST",
+                            "rel": "cancel"
+                        },
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-YDTHJ9C365VL",
+                            "method": "PATCH",
+                            "rel": "edit"
+                        },
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-YDTHJ9C365VL",
+                            "method": "GET",
+                            "rel": "self"
+                        },
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-YDTHJ9C365VL/suspend",
+                            "method": "POST",
+                            "rel": "suspend"
+                        },
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-YDTHJ9C365VL/capture",
+                            "method": "POST",
+                            "rel": "capture"
+                        }
+                    ],
+                    "plan_id": "P-7V29162651010031FMDM6IHA",
+                    "plan_overridden": false,
+                    "quantity": "800",
+                    "shipping_amount": {
+                        "currency_code": "EUR",
+                        "value": "0.0"
+                    },
+                    "start_time": "2022-03-14T15:23:37Z",
+                    "status": "ACTIVE",
+                    "status_changed_by": "MERCHANT",
+                    "status_update_time": "2022-03-14T15:24:03Z",
+                    "subscriber": {
+                        "email_address": "aaron@wemove.eu",
+                        "name": {
+                            "given_name": "Aaron",
+                            "surname": "Ross"
+                        },
+                        "payer_id": "TR9A6ZU7H55XC"
+                    },
+                    "update_time": "2022-03-14T15:24:03Z"
+                },
+                "subscriptionId": "I-YDTHJ9C365VL"
+            }
+        },
+        "testing": false
+    },
+    "actionId": 333,
+    "actionPage": {
+        "locale": "fr",
+        "name": "birds/minimumbasicseeds",
+        "supporterConfirmTemplate": null,
+        "thankYouTemplate": "3568892",
+        "thankYouTemplateRef": null
+    },
+    "actionPageId": 1,
+    "campaign": {
+        "externalId": null,
+        "name": "letsdoit",
+        "title": "Let's do it!"
+    },
+    "campaignId": 1,
+    "contact": {
+        "contactRef": "g4_94zpoQefQ_o--Kqm10_kVDyTYnSJRsLOf7LE1gMA",
+        "email": "aaron@wemove.eu",
+        "firstName": "Aaron",
+        "lastName": "Ross"
+    },
+    "org": {
+        "name": "WeMove",
+        "title": "WeMove"
+    },
+    "orgId": 2,
+    "personalInfo": null,
+    "privacy": {
+        "emailStatus": null,
+        "emailStatusChanged": null,
+        "givenAt": "2022-03-14T15:24:05Z",
+        "optIn": false,
+        "withConsent": true
+    },
+    "schema": "proca:action:2",
+    "stage": "deliver",
+    "tracking": {
+        "campaign": "unknown",
+        "content": "",
+        "location": "https://act.not-a2.eu/campaigns/1339",
+        "medium": "unknown",
+        "source": "unknown"
+    }
+}

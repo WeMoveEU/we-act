@@ -16,7 +16,7 @@ class CRM_WeAct_CampaignCache {
     $campaign = NULL;
 
     // If the action seems to come from a mailing (according to utm), use the campaign of the mailing
-    if ($action->utm && substr($action->utm['source'], 0, 9) == 'civimail-') {
+    if ($action->utm && array_key_exists('source', $action->utm) && substr($action->utm['source'], 0, 9) == 'civimail-') {
       $campaign = $this->getFromMailingSource($action->utm['source']);
     }
 

@@ -108,6 +108,7 @@ class CRM_WeAct_Action_Donation {
         'fee_amount' => $this->fee,
         'net_amount' => ($this->amount - $this->fee),
         'trxn_id' => $this->paymentId,
+        'invoice_id' => @$this->donationId, // ? $this->invoiceId : $this->paymentId,
         'contribution_status' => CRM_Utils_Array::value($this->status, $statusMap, 'Pending'),
         'currency' => $this->currency,
         'subject' => $action_page,
@@ -117,9 +118,7 @@ class CRM_WeAct_Action_Donation {
       ];
       if ($recurring_id) {
         $params['contribution_recur_id'] = $recurring_id;
-        //The utm params will be set by a hook in contributm extension, let's
-        //not mess with it
-        $created = NULL;
+        // The utm params get copied by repeattransation *and* set by a hook in contributm extension, let's not mess with it
       }
       else {
         $params[$this->settings->customFields['utm_source']] = CRM_Utils_Array::value('source', $utm);
