@@ -23,12 +23,11 @@ class CRM_WeAct_Action_ProcaTwo_Test extends CRM_WeAct_BaseTest {
       )
     );
     $ret = $this->_process($proca_event);
-
-    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
+    $contribution = $ret['contribution'];
 
     $this->assertEquals($contribution['currency'], 'EUR');
     $this->assertEquals(
-      $contribution['total_amount'],
+      number_format($contribution['total_amount'], 2),
       number_format($proca_event->action->donation->amount / 100, 2)
     );
     $this->assertEquals(
@@ -74,7 +73,7 @@ class CRM_WeAct_Action_ProcaTwo_Test extends CRM_WeAct_BaseTest {
     );
     $ret = $this->_process($proca_event);
 
-    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
+    $contribution = $ret['contribution']; // civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contribution']['id']]);
 
     $this->assertEquals(
       $contribution['currency'],
@@ -120,8 +119,8 @@ class CRM_WeAct_Action_ProcaTwo_Test extends CRM_WeAct_BaseTest {
       )
     );
     $ret = $this->_process($proca_event);
-    $contribution = civicrm_api3('ContributionRecur', 'getsingle', ["id" => $ret['contrib']['id']]);
-    // print(json_encode($ret['contrib'], JSON_PRETTY_PRINT));
+    $contribution = civicrm_api3('ContributionRecur', 'getsingle', ["id" => $ret['contribution']['id']]);
+    // print(json_encode($ret['contribution'], JSON_PRETTY_PRINT));
 
     $this->assertEquals($contribution['currency'], 'EUR');
     $this->assertEquals(
@@ -176,7 +175,7 @@ class CRM_WeAct_Action_ProcaTwo_Test extends CRM_WeAct_BaseTest {
     $proca_event->tracking = $utm;
     $ret = $this->_process($proca_event);
 
-    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
+    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contribution']['id']]);
 
     $this->assertEquals(
       $contribution[$this->settings->customFields['utm_source']],
@@ -193,12 +192,7 @@ class CRM_WeAct_Action_ProcaTwo_Test extends CRM_WeAct_BaseTest {
 
   }
 
-  public function testDetermineLanguage() {
-    // TODO
-
-  }
-
-  // shared stuff
+  // ---------- shared stuff -----------------------------------------------------
 
   public static function _process($json_msg) {
     $ret = civicrm_api3("Campaign", "create", ["title" => "Proca Test Campaign"]);
@@ -211,8 +205,6 @@ class CRM_WeAct_Action_ProcaTwo_Test extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $contrib = $processor->process($action, $campaign_id);
 
-    // maybe we can't get the return value and just have to hit the db
-
-    return ['contrib' => $contrib, 'action' => $action];
+    return ['contribution' => $contrib, 'action' => $action];
   }
 }

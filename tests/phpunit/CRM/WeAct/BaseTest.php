@@ -28,7 +28,7 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       ->installMe(__DIR__)
       ->callback(function($ctx) {
         CRM_WeAct_Upgrader::setRequiredSettingsForTests($ctx);
-      }, 8)
+      }, 9)
       ->apply();
   }
 

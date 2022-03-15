@@ -26,12 +26,13 @@ class CRM_WeAct_CampaignCache {
       $campaign = $this->getOrCreateSpeakout($action->location, $action->locationId);
     }
 
-    // If not, use the action page as an external identifier of the campaign
+    // If not, use the action page as an ebxternal identifier of the campaign
     if (!$campaign) {
+
       $campaign = $this->getExternalCampaign($action->externalSystem, $action->actionPageId);
       if (!$campaign) {
         $external_id = $this->externalIdentifier($action->externalSystem, $action->actionPageId);
-        $create_result = civicrm_api3('Campaign', 'create', [
+        civicrm_api3('Campaign', 'create', [
           'sequential' => 1,
           'name' => $action->actionPageName,
           'title' => $action->actionPageName,

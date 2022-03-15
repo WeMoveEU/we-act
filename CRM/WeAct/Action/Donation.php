@@ -48,12 +48,14 @@ class CRM_WeAct_Action_Donation {
     if (substr($this->processor, -5) == '-sepa') {
       $create_mandate = $this->createMandate($contact_id, 'RCUR', $campaign_id, $action_page);
       //Mandates don't have utm fields, so associate them to recurring contrib created along with mandate
-      return civicrm_api3('ContributionRecur', 'create', [
+      $created = civicrm_api3('ContributionRecur', 'create', [
         'id' => $create_mandate['values'][0]['entity_id'],
         $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
         $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ]);
+      // careful, a real create returns a list, an update returns a map.
+      return $created['values'][$created['id']];
     } else {
       $processor_id = $this->settings->paymentProcessorIds[$this->processor];
 
@@ -78,21 +80,25 @@ class CRM_WeAct_Action_Donation {
         $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ];
       $create_recur = civicrm_api3('ContributionRecur', 'create', $params);
-      return $this->createContrib($campaign_id, $contact_id, $action_page, $location, $utm, $create_recur['id']);
+      $this->createContrib($campaign_id, $contact_id, $action_page, $location, $utm, $create_recur['id']);
+      return $create_recur['values'][0];
     }
   }
 
   public function createContrib($campaign_id, $contact_id, $action_page, $location, $utm, $recurring_id = NULL) {
     $statusMap = ['success' => 'Completed', 'failed' => 'Failed'];
+    $contribution = NULL;
     if (substr($this->processor, -5) == '-sepa') {
       $create_mandate = $this->createMandate($contact_id, 'OOFF', $campaign_id, $action_page);
-      //Mandates don't have utm fields, so associate them to recurring contrib created along with mandate
-      $created = civicrm_api3('Contribution', 'create', [
+      // Mandates don't have utm fields, so associate them to the contribution created along with mandate
+      $contribution = civicrm_api3('Contribution', 'create', [ // "create" is a lie, this is an update
         'id' => $create_mandate['values'][0]['entity_id'],
         $this->settings->customFields['utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['utm_medium'] => CRM_Utils_Array::value('medium', $utm),
         $this->settings->customFields['utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
       ]);
+      // careful, a real create returns a list, an update returns a map.
+      return $contribution['values'][$contribution['id']];
     }
     else {
       $params = [
@@ -125,10 +131,10 @@ class CRM_WeAct_Action_Donation {
         $params[$this->settings->customFields['utm_medium']] = CRM_Utils_Array::value('medium', $utm);
         $params[$this->settings->customFields['utm_campaign']] = CRM_Utils_Array::value('campaign', $utm);
       }
-      $created = civicrm_api3('Contribution', 'create', $params);
-    }
 
-    return $created;
+      $contribution = civicrm_api3('Contribution', 'create', $params);
+    }
+    return $contribution['values'][0];
   }
 
   protected function createMandate($contact_id, $mandate_type, $campaign_id, $source) {
