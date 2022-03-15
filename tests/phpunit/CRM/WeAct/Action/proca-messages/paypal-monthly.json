@@ -165,10 +165,10 @@
     "schema": "proca:action:2",
     "stage": "deliver",
     "tracking": {
-        "campaign": "unknown",
+        "campaign": "campaign",
         "content": "",
         "location": "https://act.not-a2.eu/campaigns/1339",
-        "medium": "unknown",
-        "source": "unknown"
+        "medium": "medium",
+        "source": "source"
     }
 }

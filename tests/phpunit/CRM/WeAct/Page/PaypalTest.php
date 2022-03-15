@@ -15,6 +15,16 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
   // from PayPal finds the subscription and saves it.
   public function testNewRecurringPayment() {
 
+    // NOTE: The initial recurring payment has UTM codes attached. The call
+    // to repeattransaction in Page/Paypal.php triggers a copyCustomValues call
+    // to copy those to the payment. That was conflicting with a postSave hook
+    // in contributm that checked specifically for recurring contribution
+    // payments that didn't have utms set. I don't *really* understand, but
+    // we can't have both running. So I removed the contributm check for
+    // recurring payments that had no utms set.  This test will fail with a
+    // "Duplicate key exists" MySQL error if the contributm code is
+    // restored. Whee.
+
     $event = CRM_WeAct_Action_ProcaMessageFactory::recurringPaypalAction();
     $paypal_subscription_id = $event->action->donation->payload->response->subscriptionID;
 
