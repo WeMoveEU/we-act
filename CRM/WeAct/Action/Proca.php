@@ -123,32 +123,46 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     return $donation;
   }
 
-  public function determineLanguage($action) {
-    /*
-      Hrm, I'm very confused about what to do here. Sometimes we have a Country,
-      sometimes we don't. Language and Locale are used inter-changeably
-      sometimes.
-
-      We have Language based lists, so we should try hardest to get the language and
-      only secondarily the country.
-
-      And we should add Country to add the forms. Duh.
-    */
-    $page = $action->actionPage;
-    $action = $action->action;
-
-    if (property_exists($action->customFields, 'language')) {
-      $language = $action->customFields->language;
-    } else {
-      $language = $page->locale;
+  static private function _language_code_to_locale($language) {
+    // NOTE: this is terrible, but true
+    if (strlen($language) == 2) {
+      return strtolower($language) . "_" . strtoupper($language);
     }
-    $language = strtoupper($language);
+    return $language; // who knows, just pass it on
+  }
+
+  static public function determineLanguage($message) {
+    /*
+    Try to guess language:
+
+      1. custom fields, set by hosting page
+      2. country -> language mapping
+      3. widget locale, set at build time
+      4. en_GB
+    */
+    $page = $message->actionPage;
+    $action = $message->action;
+    $contact = $message->contact;
 
     $settings = CRM_WeAct_Settings::instance();
     $countryLangMapping = $settings->countryCodeToLocale;
 
-    if (array_key_exists($language, $countryLangMapping)) {
-      return $countryLangMapping[$language];
+    $language = @$action->customFields->language;
+    if ($language) {
+      return self::_language_code_to_locale($language);
+    }
+
+    $country = @$contact->country;
+    if ($country) {
+      if (array_key_exists($country, $countryLangMapping)) {
+        return $countryLangMapping[$country];
+      }
+    }
+
+    // NOTE: it's not really a locale, just a 2 char language code
+    $locale = @$page->locale;
+    if ($locale) {
+      return self::_language_code_to_locale($locale);
     }
 
     return 'en_GB';
