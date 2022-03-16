@@ -125,10 +125,13 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
 
   static private function _language_code_to_locale($language) {
     // NOTE: this is terrible, but true
+    if (strtoupper($language) == 'EN') {
+        return "en_GB";
+    }
     if (strlen($language) == 2) {
       return strtolower($language) . "_" . strtoupper($language);
     }
-    return $language; // who knows, just pass it on
+    return $language; // who knows, maybe it's valid =)
   }
 
   static public function determineLanguage($message) {
