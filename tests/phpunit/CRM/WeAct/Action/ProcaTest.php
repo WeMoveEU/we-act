@@ -233,6 +233,26 @@ JSON
     $this->assertEquals("en_GB", CRM_WeAct_Action_Proca::determineLanguage($message));
   }
 
+
+  public function testSpecialCaseEnglish() {
+
+    // EN -> en_GB and not en_EN
+
+    $message = json_decode(<<<JSON
+   {
+      "actionPage" : {},
+      "contact": {},
+      "action": {
+          "customFields": {
+              "language": "EN"
+          }
+      }
+    }
+JSON
+);
+
+    $this->assertEquals("en_GB", CRM_WeAct_Action_Proca::determineLanguage($message));
+  }
   // shared stuff
 
   public static function _process($json_msg) {
