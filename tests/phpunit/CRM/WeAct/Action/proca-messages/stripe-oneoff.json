@@ -150,10 +150,10 @@
     "schema": "proca:action:2",
     "stage": "deliver",
     "tracking": {
-        "campaign": "unknown",
-        "content": "",
+        "campaign": "stripe-oneoff-campaign",
+        "content": "stripe-oneoff-content",
         "location": "https://act.not-a2.eu/campaigns/2022-spring-fundraising-update",
-        "medium": "unknown",
-        "source": "unknown"
+        "medium": "stripe-oneoff-medium",
+        "source": "stripe-oneoff-source"
     }
 }

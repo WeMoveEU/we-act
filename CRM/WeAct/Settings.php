@@ -60,28 +60,16 @@ class CRM_WeAct_Settings {
   }
 
   protected function fetchContributionStatus() {
-    return  [
-      "completed" => civicrm_api3('OptionValue', 'getsingle', [
-        'return' => ['value'],
-        'label' => 'Completed',
-        'option_group_id' => 'contribution_status'
-      ])['value'],
-      "pending" =>  civicrm_api3('OptionValue', 'getsingle', [
-        'return' => ['value'],
-        'label' => 'Pending',
-        'option_group_id' => 'contribution_status'
-      ])['value'],
-      "failed" =>  civicrm_api3('OptionValue', 'getsingle', [
-        'return' => ['value'],
-        'label' => 'Failed',
-        'option_group_id' => 'contribution_status'
-      ])['value'],
-      "refunded" =>  civicrm_api3('OptionValue', 'getsingle', [
-        'return' => ['value'],
-        'label' => 'Refunded',
-        'option_group_id' => 'contribution_status'
-      ])['value']
-    ];
+    $dao = CRM_Core_DAO::executeQuery(<<<SQL
+      select lower(label) name, value from civicrm_option_value
+      where option_group_id = (select id from civicrm_option_group where name = 'contribution_status')
+SQL
+    );
+    $map = [];
+    while ($dao->fetch()) {
+      $map[$dao->name] = $dao->value;
+    }
+    return $map;
   }
 
   protected function fetchPaymentProcessors() {

@@ -120,11 +120,11 @@ class CRM_WeAct_Action_Donation {
         'subject' => $action_page,
         'source' => $action_page,
         'location' => $location,
-        'is_test' => $this->isTest,
+        // 'is_test' => $this->isTest,
       ];
       if ($recurring_id) {
         $params['contribution_recur_id'] = $recurring_id;
-        // The utm params get copied by repeattransation *and* set by a hook in contributm extension, let's not mess with it
+        // The utm params get copied by repeattransation *and* set by a hook in contributm extension, let's not mess with it?
       }
       else {
         $params[$this->settings->customFields['utm_source']] = CRM_Utils_Array::value('source', $utm);

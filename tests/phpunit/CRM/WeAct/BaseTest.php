@@ -72,4 +72,28 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     return $get_entity['values'][0];
   }
 
+
+  protected function verifyUTMS($utms, $contribution, $recurring = NULL) {
+    $settings = CRM_WeAct_Settings::instance();
+    $valid_fields = ['source', 'campaign', 'medium'];
+    # for ecah key in source, check it was saved for both
+    foreach ($utms as $key => $value) {
+      if (!array_key_exists($key, $valid_fields)) {
+        continue;
+      }
+      if ($contribution) {
+        $this->assertEquals(
+          $value,
+          $contribution[$settings->customFields["utm_{$key}"]]
+        );
+      }
+      if ($recurring) {
+        $this->assertEquals(
+          $value,
+          $recurring[$settings->customFields["recur_utm_{$key}"]]
+        );
+      }
+    }
+  }
+
 }

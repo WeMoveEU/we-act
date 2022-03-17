@@ -4,12 +4,12 @@
         "createdAt": "2022-03-14T11:06:44Z",
         "customFields": {
             "amount": 4,
-            "campaign": 1339,
+            "campaign": 42,
             "frequency": "monthly",
             "initialAmount": 8,
             "language": "en",
             "paymentMethod": "stripe",
-            "speakoutCampaign": 1339
+            "speakoutCampaign": 42
         },
         "donation": {
             "amount": 400,
@@ -72,7 +72,7 @@
                         "billing_thresholds": null,
                         "next_pending_invoice_item_invoice": null,
                         "default_source": null,
-                        "cancel_at_period_end": false,
+                        "cancel_at_period_endin_1KdBjYLEJyfuWvBBbaVLe2g6": false,
                         "object": "subscription",
                         "billing_cycle_anchor": 1647255999,
                         "schedule": null,
@@ -464,10 +464,10 @@
     "schema": "proca:action:2",
     "stage": "deliver",
     "tracking": {
-        "campaign": "unknown",
-        "content": "",
+        "campaign": "stripe-monthly-campaign",
+        "content": "stripe-monthly-content",
         "location": "https://act.not-a2.eu/campaigns/2022-spring-fundraising-update",
-        "medium": "unknown",
-        "source": "unknown"
+        "medium": "stripe-monthly-medium",
+        "source": "stripe-monthly-source"
     }
 }

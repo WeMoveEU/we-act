@@ -66,12 +66,12 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
   }
 
   protected function buildDonation($action_id, $json_action) {
-    // $statusMap = ['succeeded' => 'Completed', 'failed' => 'Failed'];
     $frequencyMap = ['one_off' => 'one-off', 'monthly' => 'month', 'weekly' => 'week', 'daily' => 'day'];
+    $settings = CRM_WeAct_Settings::instance();
 
     $donation = new CRM_WeAct_Action_Donation();
     $donation->createdAt = $json_action->createdAt;
-    $donation->status = 'Completed'; //FIXME $statusMap[$json_action->customFields->status];
+    $donation->status = $settings->contributionStatusIds['completed'];
     $donation->amount = intval($json_action->donation->amount) / 100;
     $donation->fee = 0;
     $donation->currency = strtoupper($json_action->donation->currency);
@@ -80,7 +80,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     } else {
       $donation->frequency = 'one-off';
     }
-    $donation->isTest = FALSE;
+    $donation->isTest = False;
 
     $provider = $json_action->donation->payload->provider;
     $donation->processor = $this->externalSystem . '-' . $provider;
@@ -106,6 +106,12 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
       if ($donation->frequency == 'one-off') {
         $donation->donationId = $donation->paymentId;
       } else {
+        // This should match up with the Stripe webhook - which sort of expects
+        // the invoice id as trxn_id of contributions, but also does some weird
+        // shit that is really hard to grok. So if there's a problem with
+        // payments getting attached to recurring donations, maybe it's because
+        // this doesn't match up with what the stripe extension is expecting.
+        $donation->paymentId = $json_action->donation->payload->paymentIntent->response->latest_invoice->id;
         $donation->donationId = $json_action->donation->payload->subscriptionId;
         $donation->providerDonorId = $json_action->donation->payload->customerId;
       }
@@ -113,8 +119,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
       $donation->paymentId = $json_action->donation->payload->response->orderID;
       $donation->paymentMethod = 'paypal';
       if ($donation->frequency == 'one-off') {
-
-        $donation->donationId = $donation->paymentId; /// ???
+        $donation->donationId = $donation->paymentId;
       } else {
         $donation->donationId = $json_action->donation->payload->response->subscriptionID;
       }
