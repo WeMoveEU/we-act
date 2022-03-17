@@ -4,11 +4,11 @@
         "createdAt": "2022-03-14T15:24:05Z",
         "customFields": {
             "amount": 8,
-            "campaign": 1339,
+            "campaign": 42,
             "frequency": "monthly",
             "initialAmount": 8,
             "language": "en",
-            "speakoutCampaign": 1339
+            "speakoutCampaign": 42
         },
         "donation": {
             "amount": 800,
@@ -17,11 +17,11 @@
             "payload": {
                 "formValues": {
                     "amount": 8,
-                    "campaign": 1339,
+                    "campaign": 42,
                     "frequency": "monthly",
                     "initialAmount": 8,
                     "language": "en",
-                    "speakoutCampaign": 1339
+                    "speakoutCampaign": 42
                 },
                 "provider": "paypal",
                 "response": {
