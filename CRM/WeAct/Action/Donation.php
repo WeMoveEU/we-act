@@ -74,7 +74,7 @@ class CRM_WeAct_Action_Donation {
         'payment_instrument_id' => $this->settings->paymentInstrumentIds[$this->paymentMethod],
         'payment_processor_id' => $processor_id,
         'campaign_id' => $campaign_id,
-        'is_test' => $this->isTest,
+        'is_test' => false, // $this->isTest,
         $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
         $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
@@ -120,7 +120,7 @@ class CRM_WeAct_Action_Donation {
         'subject' => $action_page,
         'source' => $action_page,
         'location' => $location,
-        // 'is_test' => $this->isTest,
+        'is_test' => false, // $this->isTest,
       ];
       if ($recurring_id) {
         $params['contribution_recur_id'] = $recurring_id;
@@ -131,7 +131,6 @@ class CRM_WeAct_Action_Donation {
         $params[$this->settings->customFields['utm_medium']] = CRM_Utils_Array::value('medium', $utm);
         $params[$this->settings->customFields['utm_campaign']] = CRM_Utils_Array::value('campaign', $utm);
       }
-
       $contribution = civicrm_api3('Contribution', 'create', $params);
     }
     return $contribution['values'][0];

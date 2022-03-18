@@ -15,7 +15,9 @@ class CRM_WeAct_Page_StripeTest extends CRM_WeAct_BaseTest {
     // as long as we're using Proca to get the first donation, be sure
     // to test using that processor!!
 
-    $action = CRM_WeAct_Action_ProcaTest::oneoffStripeAction();
+    $action = json_decode(
+
+    );
 
     $charge_id = 'ch_vuhQqUhzksniV';
     $action->details->paymentId = $charge_id;

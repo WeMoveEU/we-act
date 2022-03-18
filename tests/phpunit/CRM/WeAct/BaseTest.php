@@ -28,7 +28,7 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       ->installMe(__DIR__)
       ->callback(function($ctx) {
         CRM_WeAct_Upgrader::setRequiredSettingsForTests($ctx);
-      }, 9)
+      },10)
       ->apply();
   }
 
@@ -95,5 +95,9 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       }
     }
   }
+
+  protected function j($msg, $variable) {
+            print("\n$msg : " . json_encode($variable, JSON_PRETTY_PRINT) . "\n");
+          }
 
 }

@@ -138,20 +138,9 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
 
     // OK, I know this is a very long test, but ... now test a payment can be processed.
 
-    $stripe_message = file_get_contents(
+    $stripe_message = json_decode(file_get_contents(
       'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-monthly-payment.json'
-    );
-
-    civicrm_api3('PaymentProcessor', 'create', [
-      "id" => 1,
-      "class_name" => "Payment_Stripe",
-      "user_name" => "pk_test_vpPoPvgOhJe0IzOZJ2d4rPE9",
-      "password" => "rk_test_516ExxKLEJyfuWvBBMocrLLC6shsIlvpVlFvm7jnq6tUeTYCBeEVGhyb0blnLNX7u68PuMmS28AOPN4HI3cq2g5mH003Z2SJ84a",
-      "name" => "Stripe Test"
-    ]);
-
-    $_GET['processor_id'] = 1;
-
+    ));
 
     // XXX: is_test is fucking us here - IPN doesn't find the contribution, but
     // that's not all. it's very hard to figure out how to test here. So just
@@ -159,13 +148,11 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
 
     // And try out the new endpoint already.
 
-    $ipnClass = new CRM_Core_Payment_StripeIPN($stripe_message, FALSE);
-    $ret = $ipnClass->main();
-    $this->assertEquals($ret, true);
+    $page = new CRM_WeAct_Page_Stripe();
+    $created = $page->processNotification($stripe_message);
 
-    $stripe = json_decode($stripe_message);
-    $payment = $stripe->data->object;
-
+    $this->assertTrue($created != NULL);
+//    $payment = $stripe_message->data->object;
 
     // is payment there?
     // does it have tracking?
