@@ -16,20 +16,23 @@ class CRM_WeAct_CampaignCache {
     $campaign = NULL;
 
     // If the action seems to come from a mailing (according to utm), use the campaign of the mailing
-    if ($action->utm && substr($action->utm['source'], 0, 9) == 'civimail-') {
+    if ($action->utm && array_key_exists('source', $action->utm) && substr($action->utm['source'], 0, 9) == 'civimail-') {
       $campaign = $this->getFromMailingSource($action->utm['source']);
     }
 
+    // Location ID is set to speakout campaign in custom fields in paypal and
+    // proca messages. So if we have it defined, ask Speakout for it!
     if (!$campaign && @$action->locationId) {
       $campaign = $this->getOrCreateSpeakout($action->location, $action->locationId);
     }
 
-    // If not, use the action page as an external identifier of the campaign
+    // If not, use the action page as an ebxternal identifier of the campaign
     if (!$campaign) {
+
       $campaign = $this->getExternalCampaign($action->externalSystem, $action->actionPageId);
       if (!$campaign) {
         $external_id = $this->externalIdentifier($action->externalSystem, $action->actionPageId);
-        $create_result = civicrm_api3('Campaign', 'create', [
+        civicrm_api3('Campaign', 'create', [
           'sequential' => 1,
           'name' => $action->actionPageName,
           'title' => $action->actionPageName,

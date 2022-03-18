@@ -1,3 +1,4 @@
+
 <?php
 
 use CRM_WeAct_ExtensionUtil as E;
@@ -6,226 +7,468 @@ use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;
 
 /**
- * Tips:
- *  - With HookInterface, you may implement CiviCRM hooks directly in the test class.
- *    Simply create corresponding functions (e.g. "hook_civicrm_post(...)" or similar).
- *  - With TransactionalInterface, any data changes made by setUp() or test****() functions will
- *    rollback automatically -- as long as you don't manipulate schema or truncate tables.
- *    If this test needs to manipulate schema or truncate tables, then either:
- *       a. Do all that using setupHeadless() and Civi\Test.
- *       b. Disable TransactionalInterface, and handle all setup/teardown yourself.
- *
  * @group headless
  */
 class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
 
-  public function testDetermineLanguage() {
-    $action = self::oneoffStripeAction();
-    $this->assertEquals($action->language, 'pl_PL');
+  public function setUp(): void {
+    parent::setUp();
+
+    $this->settings = CRM_WeAct_Settings::instance();
   }
 
-  protected static function sepaPayload() {
-    return <<<JSON
-    {
-        "iban": "PL83101010230000261395100000",
-        "provider": "sepa"
-    }
-JSON;
-  }
-
-  protected static function stripePayload($frequency, $livemode = "true", $subscriptionID = 'sub_scription') {
-    $subscription = "";
-    $latest_invoice = "";
-    if ($frequency != "one_off") {
-      $subscription = ", \"subscriptionId\": \"{$subscriptionID}\", \"customerId\": \"cus_TomEr\"";
-      $latest_invoice = ', "latest_invoice": {"id": "in_thevoice"}';
-    }
-    return <<<JSON
-    {
-        "paymentConfirm": {
-            "payment_method_types": ["card"]
-        },
-        "paymentIntent": {
-            "response": {
-                "id": "pi_somegarbage",
-                "livemode": $livemode,
-                "customer": "cus_someone"
-                $latest_invoice
-            }
-        },
-        "provider": "stripe"
-        $subscription
-    }
-JSON;
-  }
-
-  protected static function paypalPayload($frequency) {
-    $subscription = "";
-    if ($frequency != "one_off") {
-      $subscription = ', "subscriptionId": "I-SUBSCR1PT10N"';
-    }
-    return <<<JSON
-    {
-        "order": {
-            "id": "S0M31D"
-        },
-        "provider": "paypal"
-        $subscription
-    }
-JSON;
-  }
-  protected static function donationJson($frequency, $payload, $amount = "1000") {
-    if ($amount == NULL) {
-      $amount = "1000";
-    }
-    return <<<JSON
-    {
-        "amount": "$amount",
-        "currency": "EUR",
-        "frequencyUnit": "$frequency",
-        "payload": $payload
-    }
-JSON;
-  }
-
-  protected static function trackingFields($tracking) {
-    if (isset($tracking['speakout_campaign'])) {
-      return '{"speakoutCampaign": "' . $tracking['speakout_campaign'] . '"}';
-    } else {
-      return '{}';
-    }
-  }
-
-  public static function utmTracking($source = "tester") {
-    return [ 'utm' => [
-        "campaign" => "unit-tests",
-        "source" => $source,
-        "medium" => "phpunit"
-    ]];
-  }
-
-  public static function speakoutTracking() {
-    return [
-      'speakout_campaign' => '666',
-      'utm' => [
-        "campaign" => "unit-tests",
-        "source" => "code",
-        "medium" => "phpunit",
-        "location" => "https://speakout/campaigns/foo"
-      ]
-    ];
-  }
-
-  public static function speakoutTrackingNoUtm($speakout_id) {
-    return ['speakout_campaign' => "$speakout_id", 'utm' => NULL];
-  }
-
-  protected static function eventJson($donation, $fields, $tracking) {
-    if ($tracking && array_key_exists('utm', $tracking)) {
-      $trackingJson = ', "tracking": ' . json_encode($tracking['utm']);
-    } else {
-      $trackingJson = '';
-    }
-    return <<<JSON
-    {
-        "action":
-        {
-            "actionType": "donate",
-            "createdAt": "2021-05-20T08:25:31",
-            "donation": $donation,
-            "fields": $fields
-        },
-        "actionId": 5,
-        "actionPage":
-        {
-            "locale": "pl",
-            "name": "fund/us",
-            "thankYouTemplateRef": null
-        },
-        "actionPageId": 3,
-        "campaign":
-        {
-            "externalId": null,
-            "name": "STC",
-            "title": "Some Test Campaign"
-        },
-        "campaignId": 2,
-        "contact":
-        {
-            "email": "romain@test.eu",
-            "firstName": "Romain",
-            "payload": "{\"area\":\"FR\",\"country\":\"FR\",\"email\":\"romain@test.eu\",\"firstName\":\"Romain\",\"lastName\":\"Tester\",\"postcode\":\"12345\"}",
-            "ref": "E2Cc0yLjyseWUVfDzlelGaALVP3QAZNNYuL1RCybAl8"
-        },
-        "orgId": 3,
-        "privacy":
-        {
-            "communication": false,
-            "givenAt": "2021-05-20T08:25:01Z"
-        },
-        "schema": "proca:action:1",
-        "stage": "deliver"
-        $trackingJson
-    }
-JSON;
-  }
-
-  public static function oneoffSepaAction($tracking = NULL) {
-    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("one_off", self::sepaPayload()),
-      self::trackingFields($tracking),
-      $tracking
-    )));
-  }
-
-  public static function oneoffStripeAction($tracking = NULL, $is_test = FALSE) {
-    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson(
-        "one_off",
-        self::stripePayload("one_off", $is_test ? "false" : "true")
-      ),
-      self::trackingFields($tracking),
-      $tracking
-    )));
-  }
-
-  public static function oneoffPaypalAction() {
-    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("one_off", self::paypalPayload("one_off")),
-      self::trackingFields(NULL),
-      NULL
-    )));
-  }
-
-  public static function recurringStripeAction(
-      $frequency = 'monthly',
-      $tracking = NULL,
-      $subscription = 'sub_scription',
-      $amount = NULL
-  )
-  {
-    $event_json = self::eventJson(
-      self::donationJson(
-        $frequency,
-        self::stripePayload(
-          $frequency,
-          "true",
-          $subscription
-        ),
-        $amount
-        ),
-      self::trackingFields($tracking),
-      $tracking
+  public function testStripe() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-oneoff.json'
+      )
     );
-    return new CRM_WeAct_Action_Proca(json_decode($event_json));
+    $ret = $this->_process($proca_event);
+
+    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
+
+    $this->assertEquals($contribution['currency'], 'EUR');
+    $this->assertEquals(
+      $contribution['total_amount'],
+      number_format($proca_event->action->donation->amount / 100, 2)
+    );
+    $this->assertEquals(
+      $contribution['trxn_id'],
+      $proca_event->action->donation->payload->paymentConfirm->id
+    );
+    $this->assertEquals(
+      $contribution['contribution_status_id'],
+      $this->settings->contributionStatusIds['completed']
+    );
+    $this->assertEquals(
+      $contribution['contribution_recur_id'],
+      NULL
+    );
+
+    // payment token?
+    // customer ?
+    // Payment? Transaction? What other records are created?
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
+    $test_contact = $proca_event->contact;
+    $this->assertEquals($contact['last_name'], $test_contact->lastName);
+
+    // test in other places?
+
+    $address = civicrm_api3('Address', 'getsingle', ["contact_id" => $contact['id']]);
+    $this->assertEquals($address['postal_code'], $test_contact->postcode);
+    $this->assertEquals(
+      $this->settings->countryIds[$test_contact->country],
+      $address['country_id']
+    );
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+
+    $this->verifyUTMS($proca_event->tracking, $contribution);
   }
 
-  public static function recurringPaypalAction($tracking = NULL) {
-    return new CRM_WeAct_Action_Proca(json_decode(self::eventJson(
-      self::donationJson("monthly", self::paypalPayload("monthly")),
-      self::trackingFields($tracking),
-      $tracking
-    )));
+  public function testStripeMonthly() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-monthly.json'
+      )
+    );
+    $ret = $this->_process($proca_event);
+
+    $recurring = civicrm_api3('ContributionRecur', 'getsingle', ["id" => $ret['contrib']['id']]);
+    $contribution = civicrm_api3('Contribution', 'getsingle', ["contribution_recur_id" => $ret['contrib']['id']]);
+
+    $this->assertEquals($recurring['currency'], 'EUR');
+    $this->assertEquals(
+      $recurring['amount'],
+      number_format($proca_event->action->donation->amount / 100, 2)
+    );
+    $this->assertEquals(
+      $recurring['trxn_id'],
+      $proca_event->action->donation->payload->paymentIntent->response->latest_invoice->lines->data[0]->subscription
+    );
+    $this->assertEquals(
+      $recurring['contribution_status_id'],
+      $this->settings->contributionStatusIds['in progress']
+    );
+    $this->assertEquals(
+      $contribution['contribution_recur_id'],
+      $recurring['id']
+    );
+
+    $this->assertEquals(
+      $contribution['total_amount'],
+      $recurring['amount']
+    );
+    $this->assertEquals(
+      $contribution['trxn_id'],
+      $proca_event->action->donation->payload->paymentIntent->response->latest_invoice->id
+    );
+    $this->assertEquals(
+      $contribution['contribution_status_id'],
+      $this->settings->contributionStatusIds['completed']
+    );
+    $this->assertEquals(
+      $recurring['frequency_unit'],
+      'month',
+    );
+    $this->assertEquals(
+      $recurring['frequency_interval'],
+      1
+    );
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
+    $test_contact = $proca_event->contact;
+    $this->assertEquals($contact['last_name'], $test_contact->lastName);
+
+    // test in other places?
+
+    $address = civicrm_api3('Address', 'getsingle', ["contact_id" => $contact['id']]);
+    $this->assertEquals($address['postal_code'], $test_contact->postcode);
+    $this->assertEquals(
+      $this->settings->countryIds[$test_contact->country],
+      $address['country_id']
+    );
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+
+    $this->verifyUTMS($proca_event->tracking, $contribution, $recurring);
   }
 
+  public function testStripeRecurringPayment() {
+    // call the stripe webhook api with a message matching our subscription and
+    // pray the stripe webhook api  doesn't try to connect to stripe. =)
+
+    assert(false);
+  }
+
+  public function testSEPA() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-oneoff.json'
+      )
+    );
+    $ret = $this->_process($proca_event);
+
+    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
+
+    $this->assertEquals(
+      $contribution['currency'],
+      'EUR'
+    );
+    $this->assertEquals(
+      $contribution['total_amount'],
+      number_format(
+        $proca_event->action->donation->amount / 100,
+        2
+      )
+    );
+    $this->assertEquals(
+      $contribution['trxn_id'],
+      "proca_" . $proca_event->actionId
+    );
+    $this->assertEquals(
+      $contribution['contribution_status_id'],
+      $this->settings->contributionStatusIds['pending']
+    );
+    $this->assertEquals(
+      $contribution['contribution_recur_id'],
+      NULL
+    );
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
+    $this->assertEquals($contact['last_name'], $proca_event->contact->lastName);
+    $this->assertEquals($contact['first_name'], $proca_event->contact->firstName);
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+
+    $mandate = civicrm_api3('SepaMandate', 'getsingle', ['entity_table' => 'civicrm_contribution', 'entity_id' => $contribution['id']]);
+    $this->assertEquals($mandate['type'], 'OOFF');
+    $this->assertEquals($mandate['iban'], $proca_event->action->donation->payload->iban);
+    $this->assertEquals($mandate['contact_id'], $contact['id']);
+
+    // $this->verifyUTMS()
+  }
+
+  public function testSEPAMonthly() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-monthly.json'
+      )
+    );
+    $ret = $this->_process($proca_event);
+    $recurring = civicrm_api3('ContributionRecur', 'getsingle', ["id" => $ret['contrib']['id']]);
+    // print(json_encode($ret['contrib'], JSON_PRETTY_PRINT));
+
+    $this->assertEquals($recurring['currency'], 'EUR');
+    $this->assertEquals(
+      $recurring['amount'],
+      number_format($proca_event->action->donation->amount / 100, 2)
+    );
+    $this->assertEquals($recurring['trxn_id'], "proca_" . $proca_event->actionId);
+    $this->assertEquals(
+      $recurring['contribution_status_id'],
+      $this->settings->contributionStatusIds['pending']
+    );
+
+    $this->assertEquals($recurring['frequency_unit'], 'month');
+    $this->assertEquals($recurring['frequency_interval'], 1);
+    $this->assertEquals(
+      substr($recurring['start_date'], 0, 10),
+      substr($proca_event->action->createdAt, 0, 10)
+    ); // Hrm, not sure?
+
+    $this->verifyUTMS($proca_event->tracking, NULL, $recurring);
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $recurring['contact_id']]);
+    $this->assertEquals($contact['last_name'], $proca_event->contact->lastName);
+    $this->assertEquals($contact['first_name'], $proca_event->contact->firstName);
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+
+    $mandate = civicrm_api3(
+      'SepaMandate',
+      'getsingle',
+      [
+        'entity_table' => 'civicrm_contribution_recur',
+        'entity_id' => $recurring['id']
+      ]
+    );
+    $this->assertEquals($mandate['type'], 'RCUR');
+    $this->assertEquals($mandate['iban'], $proca_event->action->donation->payload->iban);
+    $this->assertEquals($mandate['contact_id'], $contact['id']);
+  }
+
+  public function testPayPalOneOff() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/paypal-oneoff.json'
+      )
+    );
+    $ret = $this->_process($proca_event);
+
+    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
+
+    $this->assertEquals($contribution['currency'], 'EUR');
+    $this->assertEquals(
+      $contribution['total_amount'],
+      number_format($proca_event->action->donation->amount / 100, 2)
+    );
+    $this->assertEquals(
+      $contribution['trxn_id'],
+      $proca_event->action->donation->payload->response->orderID
+    );
+    $this->assertEquals(
+      $contribution['contribution_status_id'],
+      $this->settings->contributionStatusIds['completed']
+    );
+    $this->assertEquals(
+      $contribution['contribution_recur_id'],
+      NULL
+    );
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
+    $test_contact = $proca_event->contact;
+    $this->assertEquals($contact['last_name'], $test_contact->lastName);
+
+    // test in other places?
+
+    $address = civicrm_api3('Address', 'getsingle', ["contact_id" => $contact['id']]);
+    // no postal code with paypal...
+    // $this->assertEquals($address['postal_code'], $test_contact->postcode);
+    $this->assertEquals(
+      $this->settings->countryIds[$test_contact->country],
+      $address['country_id']
+    );
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+
+    $this->verifyUTMS($proca_event->tracking, $contribution);
+  }
+
+  public function testPayPalMonthly() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-monthly.json'
+      )
+    );
+    $ret = $this->_process($proca_event);
+
+    $recurring = civicrm_api3('ContributionRecur', 'getsingle', ["id" => $ret['contrib']['id']]);
+    $contribution = civicrm_api3('Contribution', 'getsingle', ["contribution_recur_id" => $ret['contrib']['id']]);
+
+    $this->assertEquals($recurring['currency'], 'EUR');
+    $this->assertEquals(
+      $recurring['amount'],
+      number_format($proca_event->action->donation->amount / 100, 2)
+    );
+    $this->assertEquals(
+      $recurring['trxn_id'],
+      $proca_event->action->donation->payload->response->subscriptionID
+    );
+    $this->assertEquals(
+      $recurring['contribution_status_id'],
+      $this->settings->contributionStatusIds['in progress']
+    );
+    $this->assertEquals(
+      $contribution['contribution_recur_id'],
+      $recurring['id']
+    );
+
+    $this->assertEquals(
+      $contribution['total_amount'],
+      $recurring['amount']
+    );
+    $this->assertEquals(
+      $recurring['frequency_unit'],
+      'month',
+    );
+    $this->assertEquals(
+      $recurring['frequency_interval'],
+      1
+    );
+    $this->assertEquals(
+      $contribution->trxn_id,
+      $proca_event->action->donation->payload->response->orderID
+    );
+    $this->assertEquals(
+      $contribution->contribution_status_id,
+      $this->settings->contributionStatusIds['completed']
+    );
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
+    $test_contact = $proca_event->contact;
+    $this->assertEquals($contact['last_name'], $test_contact->lastName);
+
+    // test in other places?
+
+    $address = civicrm_api3('Address', 'getsingle', ["contact_id" => $contact['id']]);
+    $this->assertEquals($address['postal_code'], $test_contact->postcode);
+    $this->assertEquals(
+      $this->settings->countryIds[$test_contact->country],
+      $address['country_id']
+    );
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+
+    $this->verifyUTMS($proca_event->tracking, $contribution, $recurring);
+  }
+
+  // public function testPayPalRecurringPayment - see PayPalTest
+
+  public function testTracking() {
+    $proca_event = json_decode(
+      file_get_contents(
+        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-oneoff.json'
+      )
+    );
+    $utm = (object) [
+      'source' => 'testing-source',
+      'medium' => 'testing-medium',
+      'campaign' => 'testing-campaign'
+    ];
+    $proca_event->tracking = $utm;
+    $ret = $this->_process($proca_event);
+
+    $contribution = civicrm_api3('Contribution', 'getsingle', ["id" => $ret['contrib']['id']]);
+
+    $this->assertEquals(
+      $contribution[$this->settings->customFields['utm_source']],
+      $utm->source
+    );
+    $this->assertEquals(
+      $contribution[$this->settings->customFields['utm_medium']],
+      $utm->medium
+    );
+    $this->assertEquals(
+      $contribution[$this->settings->customFields['utm_campaign']],
+      $utm->campaign
+    );
+  }
+
+  public function testDetermineLanguage() {
+
+    // 1. use the custom field is defined, it's set by the hosting page
+    // 2. use the country to language mapping
+    // 3. use the widget's language
+    // 3. en_GB
+
+    $message = json_decode(
+      <<<JSON
+   {
+      "actionPage": {
+          "locale": "DE"
+      },
+      "contact": {
+          "country": "PL"
+      },
+      "action": {
+          "customFields": {
+              "language": "FR"
+          }
+      }
+    }
+JSON
+    );
+
+    # 1. custom field
+    $this->assertEquals("fr_FR", CRM_WeAct_Action_Proca::determineLanguage($message));
+
+    # 2. country
+    unset($message->action->customFields->language);
+    $this->assertEquals("pl_PL", CRM_WeAct_Action_Proca::determineLanguage($message));
+
+    # 3. widget
+    unset($message->contact->country);
+    $this->assertEquals("de_DE", CRM_WeAct_Action_Proca::determineLanguage($message));
+
+    # 4. fallback
+    unset($message->actionPage->locale);
+    $this->assertEquals("en_GB", CRM_WeAct_Action_Proca::determineLanguage($message));
+  }
+
+
+  public function testSpecialCaseEnglish() {
+
+    // EN -> en_GB and not en_EN
+
+    $message = json_decode(
+      <<<JSON
+   {
+      "actionPage" : {},
+      "contact": {},
+      "action": {
+          "customFields": {
+              "language": "EN"
+          }
+      }
+    }
+JSON
+    );
+
+    $this->assertEquals("en_GB", CRM_WeAct_Action_Proca::determineLanguage($message));
+  }
+  // shared stuff
+
+  public static function _process($json_msg) {
+    $ret = civicrm_api3("Campaign", "create", ["title" => "Proca Test Campaign"]);
+    $campaign_id = $ret['id'];
+
+    $action = new CRM_WeAct_Action_Proca($json_msg);
+
+    $json_msg->action->customFields->speakoutCampaign = $campaign_id;
+
+    $processor = new CRM_WeAct_ActionProcessor();
+    $contrib = $processor->process($action, $campaign_id);
+
+    // maybe we can't get the return value and just have to hit the db
+
+    return ['contrib' => $contrib, 'action' => $action];
+  }
 }

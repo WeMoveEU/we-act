@@ -28,7 +28,7 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       ->installMe(__DIR__)
       ->callback(function($ctx) {
         CRM_WeAct_Upgrader::setRequiredSettingsForTests($ctx);
-      }, 8)
+      }, 9)
       ->apply();
   }
 
@@ -70,6 +70,30 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     $get_entity = civicrm_api3($entity, 'get', ['sequential' => 1] + $filter);
     $this->assertEquals(1, $get_entity['count']);
     return $get_entity['values'][0];
+  }
+
+
+  protected function verifyUTMS($utms, $contribution, $recurring = NULL) {
+    $settings = CRM_WeAct_Settings::instance();
+    $valid_fields = ['source', 'campaign', 'medium'];
+    # for ecah key in source, check it was saved for both
+    foreach ($utms as $key => $value) {
+      if (!array_key_exists($key, $valid_fields)) {
+        continue;
+      }
+      if ($contribution) {
+        $this->assertEquals(
+          $value,
+          $contribution[$settings->customFields["utm_{$key}"]]
+        );
+      }
+      if ($recurring) {
+        $this->assertEquals(
+          $value,
+          $recurring[$settings->customFields["recur_utm_{$key}"]]
+        );
+      }
+    }
   }
 
 }
