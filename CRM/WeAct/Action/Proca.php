@@ -47,24 +47,6 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     return $contact;
   }
 
-  protected function _lookupCharge($pi) {
-    $sk = CRM_Core_DAO::singleValueQuery(
-        "SELECT password FROM civicrm_payment_processor WHERE id = 1" // I know, but it works
-    );
-    if (!$sk) {
-      $sk = getenv("STRIPE_SECRET_KEY");
-    }
-    if (!$sk) {
-      throw new Exception("Oops, couldn't find a secret key for Stripe. Can't go on!");
-    }
-    $stripe = new \Stripe\StripeClient($sk);
-    $charges = $stripe->charges->all(['payment_intent' => $pi->id]);
-    if (! $charges->data) {
-      throw new Exception("Couldn't find a Charge for PaymentIntent: {$pi->id}");
-    }
-    return $charges->data[0];
-  }
-
   protected function buildDonation($action_id, $json_action) {
     $frequencyMap = ['one_off' => 'one-off', 'monthly' => 'month', 'weekly' => 'week', 'daily' => 'day'];
     $settings = CRM_WeAct_Settings::instance();
@@ -93,16 +75,10 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     } else if ($provider == 'stripe') {
       $donation->paymentMethod = $json_action->donation->payload->paymentConfirm->payment_method_types[0];
       $donation->isTest = !$json_action->donation->payload->paymentIntent->response->livemode;
-      if ($_ENV['CIVICRM_UF'] == 'UnitTests') {
-        $charge_id = property_exists($json_action->donation->payload, 'testingChargeId')
-          ? $json_action->donation->payload->testingChargeId
-          : 'ch_yetanothercharge';
-      }
-      else {
-        $charge_id = $this->_lookupCharge($json_action->donation->payload->paymentIntent->response);
-      }
-      # this becomes civicrm_contribution.trxn_id
-      $donation->paymentId = $charge_id;
+      # this becomes civicrm_contribution.trxn_id - we've used charge id,
+      # invoice id and payment intent for that value. We have payment intent id
+      # here, so use it. =)
+      $donation->paymentId = $json_action->donation->payload->paymentIntent->response->id;
       if ($donation->frequency == 'one-off') {
         $donation->donationId = $donation->paymentId;
       } else {

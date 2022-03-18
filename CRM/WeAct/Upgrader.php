@@ -7,7 +7,7 @@ use CRM_WeAct_ExtensionUtil as E;
  */
 class CRM_WeAct_Upgrader extends CRM_WeAct_Upgrader_Base {
 
-  public static $setRequiredSettings_version = 8;
+  public static $setRequiredSettings_version = 9;
 
   public function install() {
     $this->executeCustomDataFileByAbsPath($this->extensionDir . '/xml/campaign_fields.xml');
@@ -25,6 +25,7 @@ class CRM_WeAct_Upgrader extends CRM_WeAct_Upgrader_Base {
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'Credit Card', 'payment_processor_type_id' => 'Dummy']);
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-card', 'payment_processor_type_id' => 'Dummy']);
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'CommitChange-sepa', 'payment_processor_type_id' => 'Dummy']);
+    civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-stripe', 'payment_processor_type_id' => 'Dummy']);
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-sepa', 'payment_processor_type_id' => 'Dummy']);
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'Proca-paypal', 'payment_processor_type_id' => 'Dummy']);
     civicrm_api3('PaymentProcessor', 'create', ['name' => 'Paypal-button', 'payment_processor_type_id' => 'Dummy']);
