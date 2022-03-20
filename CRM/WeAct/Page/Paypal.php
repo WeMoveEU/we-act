@@ -6,10 +6,9 @@
  */
 class CRM_WeAct_Page_Paypal extends CRM_Core_Page {
 
-  //FIXME add missing statuses
-  private $civiStatus = [
-    'completed' => 'Completed'
-  ];
+  public function __construct() {
+    $this->settings = CRM_WeAct_Settings::instance();
+  }
 
   public function run() {
     $json_body = json_decode(file_get_contents('php://input'));
@@ -25,18 +24,27 @@ class CRM_WeAct_Page_Paypal extends CRM_Core_Page {
         CRM_Core_Error::debug_log_message("Could not find any recurring contribution with transaction id {$json_body->resource->billing_agreement_id}, skipping.");
       }
       if ($contrib_recur) {
-        $repeat_params = [
+        $payment_params = [
           'contribution_recur_id' => $contrib_recur['id'],
-          'contribution_status_id' => $this->civiStatus[$json_body->resource->state],
-          //Paypal sends this date in UTC in ISO8601 format, which civi understands fine
           'receive_date' => $json_body->resource->create_time,
           'trxn_id' => $json_body->resource->id,
+          'contribution_status_id' => $this->settings->contributionStatusIds[$json_body->resource->state],
+          'campaign_id' =>       $contrib_recur['campaign_id'],
+          'contact_id' => $contrib_recur['contact_id'],
+          // 'source' => @$metadata->utm_source,
+          'total_amount' => $contrib_recur['amount'],
+          'currency' => $contrib_recur['currency'],
+          'payment_instrument_id' => $contrib_recur['payment_instrument_id'],
+          'payment_processor_id' => $contrib_recur['payment_processor_id'],
+          'financial_type_id' => $this->settings->financialTypeId,
         ];
+        CRM_Core_Error::debug_log_message("handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
 
-        civicrm_api3('Contribution', 'repeattransaction', $repeat_params);
-      }
+        $ret = civicrm_api3('Contribution', 'create', $payment_params);
+        return $ret['values'][$ret['id']]; // so so weird      }
     }
   }
+}
 
   public function isRecurringPayment($json_body) {
     return $json_body->event_type == 'PAYMENT.SALE.COMPLETED';

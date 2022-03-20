@@ -46,6 +46,7 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
   }
 
   protected function recurringPayment($subscription_id) {
+    // do the real events contain an amount?
     return <<<JSON
     {
       "event_type": "PAYMENT.SALE.COMPLETED",
@@ -59,6 +60,9 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
     }
 JSON;
   }
+
+  // TODO
+  // protected function recurringCancel($subscription_id) {}
 
 }
 

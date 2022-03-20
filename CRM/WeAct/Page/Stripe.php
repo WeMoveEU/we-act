@@ -3,7 +3,30 @@
 require_once('vendor/autoload.php');
 
 /*
- * Webhook to process Stripe payments for recurring donations.
+ * Webhook to process Stripe payments for recurring donations created with
+ * Houdini / CommitChange / Proca Widget.
+ *
+ * We only handle a small subset of events and make strong assumptions about the
+ * context. For example, that a contribution recur connected to a subsription
+ * already exists because some other code created it and created it with very
+ * specific IDs and related objects.
+ *
+ * So don't go trying to make this code handle any old events from Stripe -
+ * you'll probably end up with three arms and one leg. OK? OK?
+ *
+ * Other things:
+ *
+ *  - _findPayment tries really really hard to use any and all previously used
+ *    identifiers to locate a contribution. To simplify that code, we would need
+ *    to update the consumers to always save the same identifier:
+ *
+ *        - commitcivi
+ *        - proca
+ *        - this code
+ *
+ *     PaymentIntent id is probably the best option, it seems to be sent with
+ *     most events (so no need to call the stripe api when handling an event).
+ *
  */
 
 class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
@@ -11,44 +34,6 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
   public function __construct() {
     $this->settings = CRM_WeAct_Settings::instance();
   }
-
-  /*
-     * Notes:
-     *
-     *  - Main feature : to handle recurring payments from Proca and Houdini
-     *    created / migrated subscriptions, and any "god knows
-     *    where" from subscriptions.
-     *
-     *  - Contributions in CiviCRM should *always* be saved and found with the
-     *    Stripe charge_id.
-
-     *  - If needed, update the db to sync trxn_id = Stripe.charge_id, don't add
-     *    code. The _findTransaction can go away once that's done.
-     *
-     *  - handleSubscriptionCreate does *NOT* create a civicrm contribution, just
-     *    a civicrm contributionrecur. handlePayment will create the civicrm
-     *    contribution and attach it to the contributionrecur.
-     *
-     * Questions:
-     *
-     *  - Why do we have to look up the contribution when calling
-     *    repeattransaction? We don't always, but we're better at it than
-     *    CiviCRM because we use fewer criteria. Donation.createContrib should
-     *    do the same?
-     *
-     * Refactoring notes:
-     *
-     *  - Move more of this code to Action classes, specifically anything that
-     *    creates Contribution and ContributionRecur should re-sue the code in
-     *    Action/Donation.php; We want to have an Activity entry anytime a
-     *    ContributionRecur is created, but that's not a priority.
-     * - Action/Stripe.php would have the switch / case and the handling code
-     * - Page/Stripe.php would decode, instantiate a Stripe instance and hand
-     *   off processing.
-     * - Action Stripe.php could be split into multiple classes: StripePayment,
-     *   StripeSubscription and so on. Yeesh, this is starting to look a lot
-     *   like the Stripe extension!
-     */
 
   public function run() {
     $post = file_get_contents('php://input');
@@ -62,20 +47,32 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
   }
 
   public function processNotification($event) {
+
+    /* Dispatch events !
+     *
+     * Surprising but true, we do not create subscriptions or handle single
+     * payments. RabbitMQ consumers commitcivi and WeAct.proca do that. Be
+     * warned that the trxn_ids created in contribution and contribution_recur
+     * are not always the same identifier. There might be a pi_ or a ch_ or a
+     * in_ in there. Or all three. So if you start adding payments and
+     * subscriptions to the db, be very afraid of duplicates.
+     *
+     */
+
     switch ($event->type) {
+        // payment on recurring contribution
       case 'invoice.payment_succeeded':
       case 'invoice.payment_failed':
-        return $this->handlePayment($event->data->object);
+        return $this->handleRecurringPayment($event->data->object);
+        // change in amount or cancellation
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
         return $this->handleSubscriptionUpdate($event->data->object);
-      case 'customer.subscription.created':
-        return $this->handleSubscriptionCreate($event->data->object);
-      case 'charge.succeeded':
-        return $this->handleChargeSucceeded($event->data->object);
+        // refunds
       case 'charge.refunded':
       case 'charge.voided':
         return $this->handleRefund($event->data->object);
+        // creates new contacts
       case 'customer.created':
         return $this->handleCustomerCreate($event->data->object);
       default:
@@ -85,7 +82,6 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
   }
 
   private function handleSubscriptionUpdate($subscription) {
-    $id = $subscription->id;
     $status = $subscription->status;
 
     # find the subscription
@@ -133,89 +129,55 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
   }
 
   private function handleRefund($charge) {
-    $contribution_id = $this->_findContribution($charge->id, $charge->invoice);
-    if (!$contribution_id) {
-      CRM_Core_Error::debug_log_message("handleRefund: No contribution found for charge {$charge->id}");
-      return;
+    $found = $this->_findContribution($charge);
+    if (!$found) {
+      throw new Exception("handleRefund: No contribution found for charge: " . json_encode($charge));
     }
-
-    CRM_Core_Error::debug_log_message("handleRefund: Refunding $contribution_id Stripe Charge {$charge->id}");
+    CRM_Core_Error::debug_log_message("handleRefund: Refunding " . json_encode($found) . " Stripe Charge {$charge->id}");
 
     civicrm_api3('Contribution', 'create', [
-      'id' => $contribution_id,
+      'id' => $found['id'],
       'contribution_status_id' => 'Refunded',
     ]);
   }
-
-  private function handleChargeSucceeded($charge) {
-
-    // charges with an invoice are not our problem - let invoice.payment_succeeded
-    // those
-    if ($charge->invoice != NULL) {
-      return;
-    }
-
-    throw new Exception("Single payments aren't handled here! The webhook shouldn't send them.");
-  }
-
-  private function handlePayment($invoice) {
-    # print("handling payment: \nphb");
-    if ($invoice->subscription == NULL) {
-      return $this->handleSinglePayment($invoice);
-    }
-    # print("handling payment: \nphb");
-
+  private function handleRecurringPayment($invoice) {
     try {
       // i bet we'll need to try more than one field here ...
       $contrib_recur = civicrm_api3('ContributionRecur', 'getsingle', ['trxn_id' => $invoice->subscription]);
     } catch (CiviCRM_API3_Exception $ex) {
-      # print("handlePayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}\n");
-
-      CRM_Core_Error::debug_log_message("handlePayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
-      // TODO: Try harder - look up using other keys?
+      # print("\nhandlePayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
+      CRM_Core_Error::debug_log_message("handleRecurringPayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
       return;
     }
 
-    # print("handlePayment: Found recurring contribution {$contrib_recur['id']}\n");
-    CRM_Core_Error::debug_log_message("handlePayment: Found recurring contribution {$contrib_recur['id']}");
+    # # print("handleRecurringPayment: Found recurring contribution {$contrib_recur['id']}\n");
+    # print("\nhandlePayment: Found recurring contribution {$contrib_recur['id']}");
+    CRM_Core_Error::debug_log_message("handleRecurringPayment: Found recurring contribution {$contrib_recur['id']}");
 
-    try {
-      $contrib = civicrm_api3('Contribution', 'getsingle', [
-        'contribution_recur_id' => $contrib_recur['id'],
-        'options' => ['limit' => 1, 'sort' => 'id DESC'],
-      ]);
-    } catch (CiviCRM_API3_Exception $ex) {
-      # print("handlePayment: No contribution found for recurring: {$contrib_recur['id']}\n");
-      CRM_Core_Error::debug_log_message("handlePayment: No contribution found for recurring: {$contrib_recur['id']}");
-      // TODO: Try harder - create a contribution
+    // check for duplicate - don't limit to the current recurring, we might have
+    // it anyway. =(  Also, we need to check three IDs - charge, payment intent
+    // and invoice
+    $previous = $this->_findContribution($invoice);
+    if ($previous) {
+      // TODO: ooooh for debugging it would be really nice to log the key that
+      // matched! update _findContribution to return it?
+      # print("\nhandlePayment: Found existing contribution for contribution recur " .
+            // "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n");
+      CRM_Core_Error::debug_log_message(
+        "handlePayment: Found existing contribution for contribution recur " .
+        "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n");
       return;
     }
-
-    $contrib_id = $contrib['id'];
-
-    if ($contrib['trxn_id'] == $invoice->id) {
-      # print("handlePayment: Already got this contribution: $contrib_id for recurring {$contrib_recur['id']}\n");
-      CRM_Core_Error::debug_log_message("handlePayment: Already got this contribution: $contrib_id for recurring {$contrib_recur['id']}");
-      return;
-    }
-
-    # print("handlePayment: Found contribution $contrib_id for recurring {$contrib_recur['id']}\n");
-    CRM_Core_Error::debug_log_message("handlePayment: Found contribution $contrib_id for recurring {$contrib_recur['id']}");
-
-    $created_dt = new DateTime("@{$invoice->created}");
-
-
-    // repeattransaction is terrible, don't use it
-    // civicrm_api3('Contribution', 'repeattransaction', $repeat_params);
 
     // stripe copies the metadata for us, but older subscriptions won't have it,
     // so careful!
     $metadata = $invoice->lines->data[0]->metadata;
+    $created_dt = new DateTime("@{$invoice->created}");
 
     $payment_params = [
       'contribution_recur_id' => $contrib_recur['id'],
-      'receive_date' => $created_dt->format('Y-m-d H:i:s T'),
-      'trxn_id' => "{$invoice->id}",
+      'receive_date' => $created_dt   ->format('Y-m-d H:i:s T'),
+      'trxn_id' => $invoice->payment_intent, // "{$invoice->id}",
       'contribution_status_id' => $this->settings->contributionStatusIds[$invoice->paid ? 'completed' : 'failed'],
       'campaign_id' =>       $contrib_recur['campaign_id'],
       'contact_id' => $contrib_recur['contact_id'],
@@ -226,7 +188,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       'payment_processor_id' => $contrib_recur['payment_processor_id'],
       'financial_type_id' => $this->settings->financialTypeId,
     ];
-    CRM_Core_Error::debug_log_message("handlePayment: Creating contribution with " . json_encode($payment_params));
+    CRM_Core_Error::debug_log_message("handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
 
     $ret = civicrm_api3('Contribution', 'create', $payment_params);
     return $ret['values'][$ret['id']]; // so so weird
@@ -236,100 +198,32 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     return $this->createContactFromCustomer($customer);
   }
 
-  /*
-     * Handle Subscription Create
-     *
-     *     event: customer.subscription.created
-     *
-     */
-  public function handleSubscriptionCreate($subscription) {
+  // private function _findContactId($customer_id) {
 
-    $settings = CRM_WeAct_Settings::instance();
+  //   if ($_ENV['testing_contact_id']) {
+  //     return $_ENV['testing_contact_id']; // cheap mock
+  //   }
 
-    $existing = civicrm_api3(
-      'ContributionRecur',
-      'get',
-      [
-        'sequential' => 1,
-        'trxn_id' => $subscription->id,
-      ]
-    );
+  //   $stripe = $this->getStripeClient();
+  //   $customer = $stripe->customers->retrieve($customer_id);
+  //   $email = $customer->email;
 
-    if ($existing['count'] > 0) {
-      CRM_Core_Error::debug_log_message("handleSubscriptionCreate: ignoring subscription we've already got: {$subscription->id}");
-      return;
-    }
+  //   if (!$email) {
+  //     return [];
+  //   }
 
-    $customer_id = $subscription->customer;
-    $contact_id = $this->_findContactId($customer_id);
+  //   $contact = new CRM_WeAct_Contact();
+  //   $contact->email = $email;
 
-    $item = $subscription->items->data[0];
-    $price = $item->price;
-
-    $contribution = [
-      'amount' => ($price->unit_amount * $item->quantity) / 100,
-      'contact_id' => $contact_id,
-      'contribution_status_id' => 'In Progress',
-      'create_date' => "@{$subscription->created}",
-      'currency' => strtoupper($price->currency),
-      'financial_type_id' => $settings->financialTypeId,
-      'frequency_interval' => $price->recurring->interval_count,
-      'frequency_unit' => $price->recurring->interval,  // Stripe and CiviCRM Agree!!!
-      'payment_instrument_id' => $settings->paymentInstrumentIds['card'],
-      'payment_processor_id' => $settings->paymentProcessorIds['stripe'],
-      'start_date' => "@{$subscription->start_date}",
-      'trxn_id' => $subscription->id,
-      # TODO:
-      # 'campaign_id' => $campaign_id,
-      # 'is_test' => $this->isTest,
-      # $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
-      # $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
-      # $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
-    ];
-
-    $recur = civicrm_api3('ContributionRecur', 'create', $contribution);
-
-    # All this (creating a contribution) because CiviCRM has to have an
-    # "Orgininal Contribution".
-
-    $contribution['contribution_recur_id'] = $recur['id'];
-    $contribution['contribution_status_id'] = 'Completed';
-    unset($contribution['start_date']);
-    $contribution['receive_date'] = $contribution['create_date'];
-    unset($contribution['create_date']);
-
-    $contribution['trxn_id'] = $subscription->latest_invoice;
-    $contribution['total_amount'] = $contribution['amount'];
-
-    civicrm_api3('Contribution', 'create', $contribution);
-  }
-
-  private function _findContactId($customer_id) {
-    $stripe = $this->getStripeClient();
-
-    if ($_ENV['CIVICRM_UF'] == 'UnitTests') {
-      return $_ENV['testing_contact_id']; // cheap mock
-    }
-
-    $customer = $stripe->customers->retrieve($customer_id);
-    $email = $customer->email;
-
-    if (!$email) {
-      return [];
-    }
-
-    $contact = new CRM_WeAct_Contact();
-    $contact->email = $email;
-
-    $ids = $contact->getMatchingIds();
-    if (count($ids) == 0) {
-      $created = $this->createContactFromCustomer($customer);
-      $contact_id = $created['id'];
-    } else {
-      $contact_id = min($ids);
-    }
-    return $contact_id;
-  }
+  //   $ids = $contact->getMatchingIds();
+  //   if (count($ids) == 0) {
+  //     $created = $this->createContactFromCustomer($customer);
+  //     $contact_id = $created['id'];
+  //   } else {
+  //     $contact_id = min($ids);
+  //   }
+  //   return $contact_id;
+  // }
 
   public function logEvent($msg) {
     // CRM_Core_Error::debug_log_message("request: $msg");
@@ -363,7 +257,6 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     return $contact->createOrUpdate($language, 'stripe');
   }
 
-  // TODO - move to a shared place with Proca.php::_lookupCharge
   private function getStripeClient() {
     $sk = CRM_Core_DAO::singleValueQuery(
       "SELECT password FROM civicrm_payment_processor WHERE id = 1" // I know, but it works
@@ -378,10 +271,10 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
   }
 
 
-  private function _findContribution($charge, $invoice) {
-
-    # Find the charge using charge_id or invoice_id or ... - this is totally mad
-    # because we have so many systems sending payments / charges to our db.
+  private function _findContribution($charge) {
+    # Find the charge using charge_id or invoice_id or paymentintent_id or all
+    # three! .. - this is totally mad because we have so many systems sending
+    # payments / charges to our db.
     #
     # contribution.trxn_id = charge->id
     # if invoice
@@ -394,35 +287,45 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
 
     $contrib_id = CRM_Core_DAO::singleValueQuery(
       "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
-      [1 => [$charge, 'String']]
+      [1 => [$charge->payment_intent, 'String']]
     );
     if ($contrib_id) {
-      return $contrib_id;
+      return [ 'id' => $contrib_id, 'trxn_id' => $charge->payment_intent];
     }
 
-    if ($invoice) {
+    # this is a bit sneaky, this could be the id for a charge or an invoice
+    $contrib_id = CRM_Core_DAO::singleValueQuery(
+      "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
+      [1 => [$charge->id, 'String']]
+    );
+    if ($contrib_id) {
+      return [ 'id' => $contrib_id, 'trxn_id' => $charge->id ];
+    }
+
+    if (@$charge->invoice) {
+      $invoice = $charge->invoice->id;
       $contrib_id = CRM_Core_DAO::singleValueQuery(
         "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
         [1 => [$invoice, 'String']]
       );
       if ($contrib_id) {
-        return $contrib_id;
+        return [ 'id' => $contrib_id, 'trxn_id' => $invoice ];
       }
 
       $contrib_id = CRM_Core_DAO::singleValueQuery(
         "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
-        [1 => ["{$invoice},{$charge}", 'String']]
+        [1 => ["{$invoice},{$charge->id}", 'String']]
       );
       if ($contrib_id) {
-        return $contrib_id;
+        return [ 'id' => $contrib_id, 'trxn_id' => "{$invoice},{$charge->id}" ];
       }
 
       $contrib_id = CRM_Core_DAO::singleValueQuery(
         "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
-        [1 => ["{$charge},{$invoice}", 'String']]
+        [1 => ["{$charge->id},{$invoice}", 'String']]
       );
       if ($contrib_id) {
-        return $contrib_id;
+        return [ 'id' => $contrib_id, 'trxn_id' => "{$charge->id},{$invoice}" ];
       }
     }
 
