@@ -17,10 +17,15 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
     $this->settings = CRM_WeAct_Settings::instance();
   }
 
+  public static function process($proca_event) {
+    $pt = new CRM_WeAct_Action_ProcaTest();
+    return $pt->_process($proca_event);
+  }
+
   public function testStripe() {
     $proca_event = json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-oneoff.json'
+        'tests/proca-messages/stripe-oneoff.json'
       )
     );
     $ret = $this->_process($proca_event);
@@ -71,7 +76,7 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
   public function testStripeMonthly() {
     $proca_event = json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-monthly.json'
+        'tests/proca-messages/stripe-monthly.json'
       )
     );
     $ret = $this->_process($proca_event);
@@ -139,7 +144,7 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
     // OK, I know this is a very long test, but ... now test a payment can be processed.
 
     $stripe_message = json_decode(file_get_contents(
-      'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-monthly-payment.json'
+      'tests/proca-messages/stripe-monthly-payment.json'
     ));
 
     // XXX: is_test is fucking us here - IPN doesn't find the contribution, but
@@ -170,7 +175,7 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
   public function testSEPA() {
     $proca_event = json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-oneoff.json'
+        'tests/proca-messages/sepa-oneoff.json'
       )
     );
     $ret = $this->_process($proca_event);
@@ -219,7 +224,7 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
   public function testSEPAMonthly() {
     $proca_event = json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-monthly.json'
+        'tests/proca-messages/sepa-monthly.json'
       )
     );
     $ret = $this->_process($proca_event);
@@ -269,7 +274,7 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
   public function testPayPalOneOff() {
     $proca_event = json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/paypal-oneoff.json'
+        'tests/proca-messages/paypal-oneoff.json'
       )
     );
     $ret = $this->_process($proca_event);
@@ -317,7 +322,7 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
   public function testPayPalMonthly() {
     $proca_event = json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-monthly.json'
+        'tests/proca-messages/paypal-monthly.json'
       )
     );
     $ret = $this->_process($proca_event);
@@ -356,26 +361,17 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
       1
     );
     $this->assertEquals(
-      $contribution->trxn_id,
+      $contribution['trxn_id'],
       $proca_event->action->donation->payload->response->orderID
     );
     $this->assertEquals(
-      $contribution->contribution_status_id,
+      $contribution['contribution_status_id'],
       $this->settings->contributionStatusIds['completed']
     );
 
     $contact = civicrm_api3('Contact', 'getsingle', ["id" => $contribution['contact_id']]);
     $test_contact = $proca_event->contact;
     $this->assertEquals($contact['last_name'], $test_contact->lastName);
-
-    // test in other places?
-
-    $address = civicrm_api3('Address', 'getsingle', ["contact_id" => $contact['id']]);
-    $this->assertEquals($address['postal_code'], $test_contact->postcode);
-    $this->assertEquals(
-      $this->settings->countryIds[$test_contact->country],
-      $address['country_id']
-    );
 
     $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
     $this->assertEquals($email['email'], $proca_event->contact->email);
@@ -388,7 +384,7 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
   public function testTracking() {
     $proca_event = json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/sepa-oneoff.json'
+        'tests/proca-messages/sepa-oneoff.json'
       )
     );
     $utm = (object) [

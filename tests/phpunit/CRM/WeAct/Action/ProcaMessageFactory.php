@@ -149,7 +149,7 @@ JSON;
   public static function oneoffStripeAction($tracking = NULL, $is_test = FALSE) {
     return json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/stripe-oneoff.json'
+        'tests/proca-messages/stripe-oneoff.json'
       )
     );
   }
@@ -173,7 +173,7 @@ JSON;
   public static function recurringPaypalAction($tracking = NULL) {
     return json_decode(
       file_get_contents(
-        'tests/phpunit/CRM/WeAct/Action/proca-messages/paypal-monthly.json'
+        'tests/proca-messages/paypal-monthly.json'
       )
     );
   }

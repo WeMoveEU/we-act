@@ -26,26 +26,28 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
       ->install(['eu.wemove.gidipirus', 'eu.wemove.contributm', 'org.project60.sepa'])
       ->sql("UPDATE civicrm_sdd_creditor SET creditor_type = 'SEPA' WHERE creditor_type IS NULL")
       ->installMe(__DIR__)
-      ->callback(function($ctx) {
+      ->callback(function ($ctx) {
         CRM_WeAct_Upgrader::setRequiredSettingsForTests($ctx);
-      },10)
+      }, 10)
       ->apply();
   }
 
-  public function setUp() : void {
+  public function setUp(): void {
     parent::setUp();
     $consentRequests = [];
     $this->consentRequests = &$consentRequests;
 
-		$this->apiKernel = \Civi::service('civi_api_kernel');
-		$this->adhocProvider = new \Civi\API\Provider\AdhocProvider(3, 'Gidipirus');
-		$this->apiKernel->registerApiProvider($this->adhocProvider);
-		$this->adhocProvider->addAction('send_consent_request', 'access CiviCRM',
-			function ($apiRequest) use (&$consentRequests) {
+    $this->apiKernel = \Civi::service('civi_api_kernel');
+    $this->adhocProvider = new \Civi\API\Provider\AdhocProvider(3, 'Gidipirus');
+    $this->apiKernel->registerApiProvider($this->adhocProvider);
+    $this->adhocProvider->addAction(
+      'send_consent_request',
+      'access CiviCRM',
+      function ($apiRequest) use (&$consentRequests) {
         $consentRequests[] = $apiRequest;
-				return civicrm_api3_create_success(TRUE);
-			}
-		);
+        return civicrm_api3_create_success(TRUE);
+      }
+    );
 
     $contact_result = civicrm_api3('Contact', 'create', [
       'contact_type' => 'Individual', 'first_name' => 'Transient', 'last_name' => 'Contact'
@@ -53,6 +55,8 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     $this->contactId = $contact_result['id'];
 
     $settings = CRM_WeAct_Settings::instance();
+    $this->settings = $settings;
+
     $campaign_result = civicrm_api3('Campaign', 'create', [
       'campaign_type_id' => 1,
       'title' => 'Transient campaign',
@@ -96,8 +100,15 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     }
   }
 
-  protected function j($msg, $variable) {
-            print("\n$msg : " . json_encode($variable, JSON_PRETTY_PRINT) . "\n");
-          }
+  protected function json_load($file) {
+    return json_decode(
+      file_get_contents(
+        $file
+      )
+    );
+  }
 
+  protected function j($msg, $variable) {
+    print("\n$msg : " . json_encode($variable, JSON_PRETTY_PRINT) . "\n");
+  }
 }
