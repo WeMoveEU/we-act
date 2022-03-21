@@ -70,7 +70,6 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
         return $this->handleSubscriptionUpdate($event->data->object);
         // refunds
       case 'charge.refunded':
-      case 'charge.voided':
         return $this->handleRefund($event->data->object);
         // creates new contacts
       case 'customer.created':
