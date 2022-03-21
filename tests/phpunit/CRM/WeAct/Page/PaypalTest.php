@@ -27,7 +27,7 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
 
     $contribution = $this->assertExists('Contribution', [
       'trxn_id' => '6M2390528T390274B',
-      'receive_date' => '2021-07-20 14:05:20'
+      // 'receive_date' => '2021-07-20 14:05:20'
     ]);
     $recurring = $this->assertExists('ContributionRecur', [
       'trxn_id' => $paypal_subscription_id
