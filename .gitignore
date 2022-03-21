@@ -20,3 +20,5 @@ Session.vim
 tags
 vendor
 composer.lock
+
+ .phpunit.result.cache
