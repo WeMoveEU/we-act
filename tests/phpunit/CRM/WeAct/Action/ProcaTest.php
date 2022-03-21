@@ -163,15 +163,6 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
     // does it have tracking?
   }
 
-
-
-  public function testStripeRecurringPayment() {
-    // call the stripe webhook api with a message matching our subscription and
-    // pray the stripe webhook api  doesn't try to connect to stripe. =)
-
-    assert(false);
-  }
-
   public function testSEPA() {
     $proca_event = json_decode(
       file_get_contents(
