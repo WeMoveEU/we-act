@@ -75,7 +75,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       case 'customer.created':
         return $this->handleCustomerCreate($event->data->object);
       default:
-        CRM_Core_Error::debug_log_message("Ignoring event: {$event->id} of type {$event->type}");
+        CRM_Core_Error::debug_log_message("Stripe: Ignoring event: {$event->id} of type {$event->type}");
         return NULL;
     }
   }
@@ -117,7 +117,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
         $to_update['end_date'] = $ended_at->format('Y-m-d H:i:s T');
       }
     } else {
-      CRM_Core_Error::debug_log_message("handleSubscriptionUpdate: Skipping unknown status $status for recurring contribution {$contrib_recur['id']}");
+      CRM_Core_Error::debug_log_message("Stripe: handleSubscriptionUpdate: Skipping unknown status $status for recurring contribution {$contrib_recur['id']}");
     }
 
     $item = $subscription->items->data[0];
@@ -132,7 +132,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     if (!$found) {
       throw new Exception("handleRefund: No contribution found for charge: " . json_encode($charge));
     }
-    CRM_Core_Error::debug_log_message("handleRefund: Refunding " . json_encode($found) . " Stripe Charge {$charge->id}");
+    CRM_Core_Error::debug_log_message("Stripe: handleRefund: Refunding " . json_encode($found) . " Stripe Charge {$charge->id}");
 
     civicrm_api3('Contribution', 'create', [
       'id' => $found['id'],
@@ -145,13 +145,20 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       $contrib_recur = civicrm_api3('ContributionRecur', 'getsingle', ['trxn_id' => $invoice->subscription]);
     } catch (CiviCRM_API3_Exception $ex) {
       # print("\nhandlePayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
-      CRM_Core_Error::debug_log_message("handleRecurringPayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
+      CRM_Core_Error::debug_log_message("Stripe: handleRecurringPayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
+      return;
+    }
+
+    if ($invoice->amount_paid == 0) {
+      // Trial periods have an initial invoice. I don't think there are any
+      // other 0.00 amount invoices we want to keep.
+      CRM_Core_Error::debug_log_message("Stripe: handleRecurringPayment: got an invoice for {$invoice->subscription} for 0.00, skipping it");
       return;
     }
 
     # # print("handleRecurringPayment: Found recurring contribution {$contrib_recur['id']}\n");
     # print("\nhandlePayment: Found recurring contribution {$contrib_recur['id']}");
-    CRM_Core_Error::debug_log_message("handleRecurringPayment: Found recurring contribution {$contrib_recur['id']}");
+    CRM_Core_Error::debug_log_message("Stripe: Stripe: handleRecurringPayment: Found recurring contribution {$contrib_recur['id']}");
 
     // check for duplicate - don't limit to the current recurring, we might have
     // it anyway. =(  Also, we need to check three IDs - charge, payment intent
@@ -191,7 +198,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       'payment_processor_id' => $contrib_recur['payment_processor_id'],
       'financial_type_id' => $this->settings->financialTypeId,
     ];
-    CRM_Core_Error::debug_log_message("handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
+    CRM_Core_Error::debug_log_message("Stripe: Stripe: handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
 
     $ret = civicrm_api3('Contribution', 'create', $payment_params);
     return $ret['values'][$ret['id']]; // so so weird
@@ -229,7 +236,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
   // }
 
   public function logEvent($msg) {
-    // CRM_Core_Error::debug_log_message("request: $msg");
+    // CRM_Core_Error::debug_log_message("Stripe: request: $msg");
     $queryParams = [
       1 => [$msg, 'String'],
     ];
@@ -239,7 +246,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
         $queryParams
       );
     } catch (CRM_Core_Exception $e) {
-      CRM_Core_Error::debug_log_message("Stripe Webhook not logged: {$msg} {$e}");
+      CRM_Core_Error::debug_log_message("Stripe: Stripe Webhook not logged: {$msg} {$e}");
     }
   }
 

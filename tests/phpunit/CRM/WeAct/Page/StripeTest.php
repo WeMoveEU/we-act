@@ -131,7 +131,11 @@ JSON;
     $this->assertTrue(true);
   }
 
-  // TODO: Unknown subscription - But what should it do? Create the subscription right?
-  // public function testUnknownRecurringDonation() {}
+  // TODO:
+  ///  - Unknown subscription - But what should it do? Create the subscription right?
+  //     public function testUnknownRecurringDonation() {}
+  //   - Test trial period invoice for 0.00
+  //   - Payment without PI, without Charge..
+  //
 
 }
