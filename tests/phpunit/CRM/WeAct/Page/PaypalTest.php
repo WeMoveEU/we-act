@@ -36,6 +36,9 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
     $this->assertEquals($contribution['contribution_recur_id'], $recurring['id']);
 
     $this->verifyUTMS($event->tracking, $contribution, $recurring);
+
+    $page->processNotification(json_decode($this->recurringPayment($paypal_subscription_id)));
+    $this->assertTrue(True); // just make sure we don't explode on an existing payment
   }
 
   public function testUnknownRecurringDonation() {
@@ -60,7 +63,6 @@ class CRM_WeAct_Page_PaypalTest extends CRM_WeAct_BaseTest {
     }
 JSON;
   }
-
   // TODO
   // protected function recurringCancel($subscription_id) {}
 

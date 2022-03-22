@@ -21,13 +21,14 @@ class CRM_WeAct_Page_Paypal extends CRM_Core_Page {
         $contrib_recur = civicrm_api3('ContributionRecur', 'getsingle', ['trxn_id' => $json_body->resource->billing_agreement_id]);
       } catch(CiviCRM_API3_Exception $ex) {
         $contrib_recur = NULL;
-        CRM_Core_Error::debug_log_message("Could not find any recurring contribution with transaction id {$json_body->resource->billing_agreement_id}, skipping.");
+        CRM_Core_Error::debug_log_message("PayPal: handleRecurringPayment: Could not find any recurring contribution with transaction id {$json_body->resource->billing_agreement_id}, skipping.");
       }
       if ($contrib_recur) {
         $payment_params = [
           'contribution_recur_id' => $contrib_recur['id'],
           'receive_date' => $json_body->resource->create_time,
           'trxn_id' => $json_body->resource->id,
+          'invoice_id' => $json_body->resource->id,
           'contribution_status_id' => $this->settings->contributionStatusIds[$json_body->resource->state],
           'campaign_id' =>       $contrib_recur['campaign_id'],
           'contact_id' => $contrib_recur['contact_id'],
@@ -38,7 +39,20 @@ class CRM_WeAct_Page_Paypal extends CRM_Core_Page {
           'payment_processor_id' => $contrib_recur['payment_processor_id'],
           'financial_type_id' => $this->settings->financialTypeId,
         ];
-        CRM_Core_Error::debug_log_message("handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
+
+        $matches = civicrm_api3('Contribution', 'get', [ 'trxn_id' => $json_body->resource->id ]);
+        if ($matches['count'] > 0) {
+          CRM_Core_Error::debug_log_message("PayPal: handleRecurringPayment: Found matching contribution for trxn_id : " . $json_body->resource->id);
+          return 0;
+        }
+
+        $matches = civicrm_api3('Contribution', 'get', [ 'invoice_id' => $json_body->resource->id ]);
+        if ($matches['count'] > 0) {
+          CRM_Core_Error::debug_log_message("PayPal: handleRecurringPayment: Found matching contribution for invoice_id : " . $json_body->resource->id);
+          return 0;
+        }
+
+        CRM_Core_Error::debug_log_message("PayPal: handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
 
         $ret = civicrm_api3('Contribution', 'create', $payment_params);
         return $ret['values'][$ret['id']]; // so so weird      }
