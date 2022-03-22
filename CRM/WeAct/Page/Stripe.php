@@ -158,11 +158,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     // and invoice
     $previous = $this->_findContribution($invoice);
     if ($previous) {
-      // TODO: ooooh for debugging it would be really nice to log the key that
-      // matched! update _findContribution to return it?
-      # print("\nhandlePayment: Found existing contribution for contribution recur " .
-      // "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n");
-      CRM_Core_Error::debug_log_message(
+       CRM_Core_Error::debug_log_message(
         "handlePayment: Found existing contribution for contribution recur " .
           "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n"
       );
@@ -174,10 +170,14 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     $metadata = $invoice->lines->data[0]->metadata;
     $created_dt = new DateTime("@{$invoice->created}");
 
+    // take what we can get...
+    $trxn_id = $invoice->payment_intent || $invoice->charge || $invoice->id;
+
     $payment_params = [
       'contribution_recur_id' => $contrib_recur['id'],
       'receive_date' => $created_dt->format('Y-m-d H:i:s T'),
-      'trxn_id' => $invoice->payment_intent, // "{$invoice->id}",
+      'trxn_id' => $trxn_id, // "{$invoice->id}",
+      'invoice_id' => $invoice->id,
       'contribution_status_id' => $this->settings->contributionStatusIds[$invoice->paid ? 'completed' : 'failed'],
       'campaign_id' =>       $contrib_recur['campaign_id'],
       'contact_id' => $contrib_recur['contact_id'],
