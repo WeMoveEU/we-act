@@ -171,7 +171,10 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     $created_dt = new DateTime("@{$invoice->created}");
 
     // take what we can get...
-    $trxn_id = $invoice->payment_intent || $invoice->charge || $invoice->id;
+    $a = $invoice->payment_intent;
+    $b = $invoice->charge;
+    $c = $invoice->id;
+    $trxn_id = ($a ? $a : ($b ? $b : $c));
 
     $payment_params = [
       'contribution_recur_id' => $contrib_recur['id'],
