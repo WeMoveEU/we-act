@@ -162,10 +162,11 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       // TODO: ooooh for debugging it would be really nice to log the key that
       // matched! update _findContribution to return it?
       # print("\nhandlePayment: Found existing contribution for contribution recur " .
-            // "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n");
+      // "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n");
       CRM_Core_Error::debug_log_message(
         "handlePayment: Found existing contribution for contribution recur " .
-        "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n");
+          "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n"
+      );
       return;
     }
 
@@ -176,7 +177,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
 
     $payment_params = [
       'contribution_recur_id' => $contrib_recur['id'],
-      'receive_date' => $created_dt   ->format('Y-m-d H:i:s T'),
+      'receive_date' => $created_dt->format('Y-m-d H:i:s T'),
       'trxn_id' => $invoice->payment_intent, // "{$invoice->id}",
       'contribution_status_id' => $this->settings->contributionStatusIds[$invoice->paid ? 'completed' : 'failed'],
       'campaign_id' =>       $contrib_recur['campaign_id'],
@@ -285,12 +286,14 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     # What a mess... let's update the db and make sure everything saves a
     # charge id to the contribution table.
 
-    $contrib_id = CRM_Core_DAO::singleValueQuery(
-      "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
-      [1 => [$charge->payment_intent, 'String']]
-    );
-    if ($contrib_id) {
-      return [ 'id' => $contrib_id, 'trxn_id' => $charge->payment_intent];
+    if ($charge->payment_intent) {
+      $contrib_id = CRM_Core_DAO::singleValueQuery(
+        "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
+        [1 => [$charge->payment_intent, 'String']]
+      );
+      if ($contrib_id) {
+        return ['id' => $contrib_id, 'trxn_id' => $charge->payment_intent];
+      }
     }
 
     # this is a bit sneaky, this could be the id for a charge or an invoice
@@ -299,7 +302,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       [1 => [$charge->id, 'String']]
     );
     if ($contrib_id) {
-      return [ 'id' => $contrib_id, 'trxn_id' => $charge->id ];
+      return ['id' => $contrib_id, 'trxn_id' => $charge->id];
     }
 
     if (@$charge->invoice) {
@@ -309,7 +312,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
         [1 => [$invoice, 'String']]
       );
       if ($contrib_id) {
-        return [ 'id' => $contrib_id, 'trxn_id' => $invoice ];
+        return ['id' => $contrib_id, 'trxn_id' => $invoice];
       }
 
       $contrib_id = CRM_Core_DAO::singleValueQuery(
@@ -317,7 +320,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
         [1 => ["{$invoice},{$charge->id}", 'String']]
       );
       if ($contrib_id) {
-        return [ 'id' => $contrib_id, 'trxn_id' => "{$invoice},{$charge->id}" ];
+        return ['id' => $contrib_id, 'trxn_id' => "{$invoice},{$charge->id}"];
       }
 
       $contrib_id = CRM_Core_DAO::singleValueQuery(
@@ -325,7 +328,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
         [1 => ["{$charge->id},{$invoice}", 'String']]
       );
       if ($contrib_id) {
-        return [ 'id' => $contrib_id, 'trxn_id' => "{$charge->id},{$invoice}" ];
+        return ['id' => $contrib_id, 'trxn_id' => "{$charge->id},{$invoice}"];
       }
     }
 
