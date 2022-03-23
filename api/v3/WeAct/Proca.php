@@ -24,5 +24,5 @@ function _civicrm_api3_we_act_Proca_spec(&$spec) {
  * Return API result as expected by Rabbitizen
  */
 function civicrm_api3_we_act_Proca($params) {
-  return _we_act_process_message(CRM_WeAct_Action_Proca, $params['message']);
+  return _we_act_process_message('CRM_WeAct_Action_Proca', $params['message']);
 }
