@@ -315,7 +315,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     }
 
     if (@$charge->invoice) {
-      $invoice = $charge->invoice->id;
+      $invoice = $charge->invoice;
       $contrib_id = CRM_Core_DAO::singleValueQuery(
         "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
         [1 => [$invoice, 'String']]
