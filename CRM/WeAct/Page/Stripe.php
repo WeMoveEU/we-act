@@ -314,8 +314,9 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       return ['id' => $contrib_id, 'trxn_id' => $charge->id];
     }
 
-    if (@$charge->invoice) {
-      $invoice = $charge->invoice;
+    if (substr($charge->id, 0, 3) == 'in_') {
+      $invoice = $charge->id;
+      $charge = $charge->charge;
       $contrib_id = CRM_Core_DAO::singleValueQuery(
         "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
         [1 => [$invoice, 'String']]
@@ -326,18 +327,18 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
 
       $contrib_id = CRM_Core_DAO::singleValueQuery(
         "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
-        [1 => ["{$invoice},{$charge->id}", 'String']]
+        [1 => ["{$invoice},{$charge}", 'String']]
       );
       if ($contrib_id) {
-        return ['id' => $contrib_id, 'trxn_id' => "{$invoice},{$charge->id}"];
+        return ['id' => $contrib_id, 'trxn_id' => "{$invoice},{$charge}"];
       }
 
       $contrib_id = CRM_Core_DAO::singleValueQuery(
         "SELECT id FROM civicrm_contribution WHERE trxn_id = %1",
-        [1 => ["{$charge->id},{$invoice}", 'String']]
+        [1 => ["{$charge},{$invoice}", 'String']]
       );
       if ($contrib_id) {
-        return ['id' => $contrib_id, 'trxn_id' => "{$charge->id},{$invoice}"];
+        return ['id' => $contrib_id, 'trxn_id' => "{$charge},{$invoice}"];
       }
     }
 
