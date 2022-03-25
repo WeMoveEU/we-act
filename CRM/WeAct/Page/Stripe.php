@@ -158,7 +158,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
 
     # # print("handleRecurringPayment: Found recurring contribution {$contrib_recur['id']}\n");
     # print("\nhandlePayment: Found recurring contribution {$contrib_recur['id']}");
-    CRM_Core_Error::debug_log_message("Stripe: Stripe: handleRecurringPayment: Found recurring contribution {$contrib_recur['id']}");
+    CRM_Core_Error::debug_log_message("Stripe: handleRecurringPayment: Found recurring contribution {$contrib_recur['id']}");
 
     // check for duplicate - don't limit to the current recurring, we might have
     // it anyway. =(  Also, we need to check three IDs - charge, payment intent
@@ -198,7 +198,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       'payment_processor_id' => $contrib_recur['payment_processor_id'],
       'financial_type_id' => $this->settings->financialTypeId,
     ];
-    CRM_Core_Error::debug_log_message("Stripe: Stripe: handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
+    CRM_Core_Error::debug_log_message("Stripe: handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
 
     $ret = civicrm_api3('Contribution', 'create', $payment_params);
     return $ret['values'][$ret['id']]; // so so weird
