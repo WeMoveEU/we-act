@@ -131,6 +131,11 @@ JSON;
     $this->assertTrue(true);
   }
 
+  public function testMatchForStripeExtensionPayment() {
+    // TODO: Test _findContribution for an existing payment with a trxn_id of
+    // in_{...},ch_{....}
+  }
+
   // TODO:
   ///  - Unknown subscription - But what should it do? Create the subscription right?
   //     public function testUnknownRecurringDonation() {}
