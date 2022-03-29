@@ -496,9 +496,6 @@ JSON
     $this->assertConsentRequestNotSent();
   }
 
-  public function testDeprecated() {
-    civicrm_api3("WeAct", "Proca", [ "message" => "Hey!"] );
-  }
   // shared stuff
 
   public static function _process($json_msg) {
