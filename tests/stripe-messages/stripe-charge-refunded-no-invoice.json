@@ -1,0 +1,141 @@
+{
+    "id": "evt_3KgRdSLEJyfuWvBB044lDDtZ",
+    "object": "event",
+    "api_version": "2020-03-02",
+    "created": 1648038316,
+    "data": {
+        "object": {
+            "id": "ch_3KgRdSLEJyfuWvBB0y1Ga64U",
+            "object": "charge",
+            "amount": 200,
+            "amount_captured": 200,
+            "amount_refunded": 200,
+            "application": null,
+            "application_fee": null,
+            "application_fee_amount": null,
+            "balance_transaction": "txn_3KgRdSLEJyfuWvBB0FAWdayd",
+            "billing_details": {
+                "address": {
+                    "city": null,
+                    "country": "IT",
+                    "line1": null,
+                    "line2": null,
+                    "postal_code": "40134",
+                    "state": null
+                },
+                "email": "olga@wemove.eu",
+                "name": null,
+                "phone": null
+            },
+            "calculated_statement_descriptor": "WEMOVE EUROPE",
+            "captured": true,
+            "created": 1648032134,
+            "currency": "eur",
+            "customer": "cus_LNC1pOMhsLX5Wd",
+            "description": "Subscription creation",
+            "destination": null,
+            "dispute": null,
+            "disputed": false,
+            "failure_code": null,
+            "failure_message": null,
+            "fraud_details": {},
+            "invoice": "in_1KgRdRLEJyfuWvBB2jGjRmwG",
+            "livemode": true,
+            "metadata": {},
+            "on_behalf_of": null,
+            "order": null,
+            "outcome": {
+                "network_status": "approved_by_network",
+                "reason": null,
+                "risk_level": "normal",
+                "risk_score": 0,
+                "seller_message": "Payment complete.",
+                "type": "authorized"
+            },
+            "paid": true,
+            "payment_intent": "pi_3KgRdSLEJyfuWvBB09Z7MR2t",
+            "payment_method": "pm_1KgRdTLEJyfuWvBB0Ir5CsDq",
+            "payment_method_details": {
+                "card": {
+                    "brand": "visa",
+                    "checks": {
+                        "address_line1_check": null,
+                        "address_postal_code_check": "pass",
+                        "cvc_check": "pass"
+                    },
+                    "country": "IT",
+                    "exp_month": 1,
+                    "exp_year": 2025,
+                    "fingerprint": "6McDjpJiIoqm1J7s",
+                    "funding": "debit",
+                    "installments": null,
+                    "last4": "0115",
+                    "mandate": null,
+                    "network": "visa",
+                    "three_d_secure": {
+                        "authenticated": true,
+                        "authentication_flow": "challenge",
+                        "result": "authenticated",
+                        "result_reason": null,
+                        "succeeded": true,
+                        "version": "2.2.0"
+                    },
+                    "wallet": null
+                },
+                "type": "card"
+            },
+            "receipt_email": null,
+            "receipt_number": null,
+            "receipt_url": "https://pay.stripe.com/receipts/acct_16ExxKLEJyfuWvBB/ch_3KgRdSLEJyfuWvBB0y1Ga64U/rcpt_LNC141NXrxnGGpEhPpKDYPn6mvOnI34",
+            "refunded": true,
+            "refunds": {
+                "object": "list",
+                "data": [
+                    {
+                        "id": "re_3KgRdSLEJyfuWvBB0gxt9OSX",
+                        "object": "refund",
+                        "amount": 200,
+                        "balance_transaction": "txn_3KgRdSLEJyfuWvBB0tNHM7tZ",
+                        "charge": "ch_3KgRdSLEJyfuWvBB0y1Ga64U",
+                        "created": 1648038315,
+                        "currency": "eur",
+                        "metadata": {},
+                        "payment_intent": "pi_3KgRdSLEJyfuWvBB09Z7MR2t",
+                        "reason": "requested_by_customer",
+                        "receipt_number": null,
+                        "source_transfer_reversal": null,
+                        "status": "succeeded",
+                        "transfer_reversal": null
+                    }
+                ],
+                "has_more": false,
+                "total_count": 1,
+                "url": "/v1/charges/ch_3KgRdSLEJyfuWvBB0y1Ga64U/refunds"
+            },
+            "review": null,
+            "shipping": null,
+            "source": null,
+            "source_transfer": null,
+            "statement_descriptor": "WeMove Europe",
+            "statement_descriptor_suffix": null,
+            "status": "succeeded",
+            "transfer_data": null,
+            "transfer_group": null
+        },
+        "previous_attributes": {
+            "amount_refunded": 0,
+            "refunded": false,
+            "refunds": {
+                "data": [],
+                "total_count": 0
+            }
+        }
+    },
+    "livemode": true,
+    "pending_webhooks": 1,
+    "request": {
+        "id": "req_w6dBNlDcJVjB61",
+        "idempotency_key": "75430776-870e-4e37-ac26-2784903e847d"
+    },
+    "type": "charge.refunded"
+}

@@ -54,6 +54,11 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     ]);
     $this->contactId = $contact_result['id'];
 
+    $group_result = civicrm_api3('Group', 'create', [
+      'name' => 'Transient Group', 'title' => 'Transient Group'
+    ]);
+    $this->groupId = $group_result['id'];
+
     $settings = CRM_WeAct_Settings::instance();
     $this->settings = $settings;
 
@@ -68,6 +73,10 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
 
   public function assertConsentRequestSent() {
     $this->assertGreaterThan(0, count($this->consentRequests));
+  }
+
+  public function assertConsentRequestNotSent() {
+    $this->assertEquals(0, count($this->consentRequests));
   }
 
   public function assertExists($entity, $filter) {

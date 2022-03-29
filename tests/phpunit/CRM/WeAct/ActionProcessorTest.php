@@ -38,6 +38,20 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $this->assertConsentRequestSent();
   }
 
+  public function testHoudiniContactExisting() {
+
+    $contact = civicrm_api3('Contact', 'create', [
+      'email' => 'test+t1@example.com',  // matches test Stripe action
+      'contact_type' => 'Individual'
+    ]);
+    civicrm_api3('GroupContact', 'create', [ 'contact_id' => $contact['id'], 'group_id' => $this->groupId ]);
+    $action = CRM_WeAct_Action_HoudiniTest::oneoffStripeAction();
+    $processor = new CRM_WeAct_ActionProcessor();
+    $contactId = $processor->getOrCreateContact($action, 66);
+    $this->assertGreaterThan(0, $contactId);
+    $this->assertConsentRequestNotSent();
+  }
+
   public function testHoudiniStripeRecur() {
     $action = CRM_WeAct_Action_HoudiniTest::recurringStripeAction();
     $processor = new CRM_WeAct_ActionProcessor();

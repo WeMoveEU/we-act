@@ -7,7 +7,6 @@ class CRM_WeAct_Contact {
   public $email;
   public $postcode;
   public $country;
-  public $isMember = false;
 
   public function __construct() {
     $this->settings = CRM_WeAct_Settings::instance();
@@ -63,11 +62,6 @@ class CRM_WeAct_Contact {
     $create_result = civicrm_api3('Contact', 'create', $create_params);
     $contact = $create_result['values'][0];
 
-    // Indicate to caller that the contact is not in the members group, because
-    // we just created them
-    // $contact['api.GroupContact.get']['count'] = 0;
-    $this->isMember = false;
-
     return $contact;
   }
 
@@ -99,11 +93,8 @@ class CRM_WeAct_Contact {
 
 
   public function sendConsents($contact_id, $campaign_id, $utms = []) {
-
-    Civi::log()->debug("Checking for group membership - {$this->isMember}");
-
-        // Membership was retrieved from a joined query to GroupContact for the members group
-    if (! $this->isMember) {
+    $groups = civicrm_api3('GroupContact', 'get', [ "contact_id" => $contact_id ]);
+    if ($groups['count'] == 0) {
       Civi::log()->debug("Sending consent request to contact {$contact_id}");
       $consentParams = [
         'contact_id' => $contact_id,
