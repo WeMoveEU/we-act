@@ -466,36 +466,6 @@ JSON
     $this->assertEquals("en_GB", CRM_WeAct_Action_Proca::determineLanguage($message));
   }
 
-  public function testContactNew() {
-    $proca_event = json_decode(
-      file_get_contents(
-        'tests/proca-messages/stripe-oneoff.json'
-      )
-    );
-    $this->_process($proca_event);
-    // $this->assertGreaterThan(0, $contactId);
-    $this->assertConsentRequestSent();
-  }
-
-  public function testContactExisting() {
-
-    $proca_event = json_decode(
-      file_get_contents(
-        'tests/proca-messages/stripe-oneoff.json'
-      )
-    );
-
-    $contact = civicrm_api3('Contact', 'create', [
-      'email' => $proca_event->contact->email,  // matches test Stripe action
-      'contact_type' => 'Individual'
-    ]);
-    civicrm_api3('GroupContact', 'create', [ 'contact_id' => $contact['id'], 'group_id' => $this->groupId ]);
-
-
-    $this->_process($proca_event);
-    $this->assertConsentRequestNotSent();
-  }
-
   // shared stuff
 
   public static function _process($json_msg) {

@@ -35,7 +35,6 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $contactId = $processor->getOrCreateContact($action, 66);
     $this->assertGreaterThan(0, $contactId);
-    $this->assertConsentRequestSent();
   }
 
   public function testHoudiniContactExisting() {
@@ -49,7 +48,6 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
     $processor = new CRM_WeAct_ActionProcessor();
     $contactId = $processor->getOrCreateContact($action, 66);
     $this->assertGreaterThan(0, $contactId);
-    $this->assertConsentRequestNotSent();
   }
 
   public function testHoudiniStripeRecur() {
