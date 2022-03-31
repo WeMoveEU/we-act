@@ -22,15 +22,18 @@ class CRM_WeAct_ActionProcessor {
       $action->source()
     );
 
-    if ($this->requestConsents) {
-      $action->contact->sendConsents(
-        $result['id'],
-        $campaign_id,
-        [ 'source' => CRM_Utils_Array::value('source', $action->utm),
-          'medium' => CRM_Utils_Array::value('medium', $action->utm),
-          'campaign' => CRM_Utils_Array::value('campaign', $action->utm) ]
-      );
-    }
+    # 
+    # We don't ask for additional consent for donations.
+    #
+    # if ($this->requestConsents) {
+    #   $action->contact->sendConsents(
+    #     $result['id'],
+    #     $campaign_id,
+    #     [ 'source' => CRM_Utils_Array::value('source', $action->utm),
+    #       'medium' => CRM_Utils_Array::value('medium', $action->utm),
+    #       'campaign' => CRM_Utils_Array::value('campaign', $action->utm) ]
+    #   );
+    # }
 
     return $result['id'];
   }
