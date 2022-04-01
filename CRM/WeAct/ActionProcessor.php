@@ -12,8 +12,16 @@ class CRM_WeAct_ActionProcessor {
     if ($action->actionType == 'donate') {
       $campaign = $this->campaignCache->getFromAction($action);
       $contact_id = $this->getOrCreateContact($action, $campaign['id']);
-      return $this->processDonation($action, $campaign['id'], $contact_id);
+      $donation = $this->processDonation($action, $campaign['id'], $contact_id);
+      if (method_exists($action, 'postProcess')) {
+        $action->postProcess();
+      }
+      return $donation;
     }
+  }
+
+  public function postProcess(CRM_WeAct_Action $action) {
+    $action->postProcess();
   }
 
   public function getOrCreateContact(CRM_WeAct_Action $action, $campaign_id) {
@@ -22,7 +30,7 @@ class CRM_WeAct_ActionProcessor {
       $action->source()
     );
 
-    # 
+    #
     # We don't ask for additional consent for donations.
     #
     # if ($this->requestConsents) {

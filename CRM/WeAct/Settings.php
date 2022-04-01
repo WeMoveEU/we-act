@@ -15,6 +15,15 @@ class CRM_WeAct_Settings {
     $this->paymentInstrumentIds = $this->fetchPaymentInstruments();
     $this->paymentProcessorIds = $this->fetchPaymentProcessors();
     $this->contributionStatusIds = $this->fetchContributionStatus();
+    $this->recurringContributionstatusMap = [
+      'active' => 'In Progress',
+      'past_due' => 'Failed', // end state for us, since no more payment attempts are made
+      'unpaid' => 'Failed', // same
+      'canceled' => 'Cancelled',
+      // 'incomplete'
+      'incomplete_expired' => 'Failed', // terminal state
+      // 'trialing'
+    ];
     $this->customFields = $this->fetchCustomFields();
     $this->countryCodeToLocale = Civi::settings()->get('country_lang_mapping');
   }
@@ -110,6 +119,8 @@ SQL
         'is_test' => 0,
       ])['id'],
     ];
+
+
   }
 
   protected function fetchCustomFields() {

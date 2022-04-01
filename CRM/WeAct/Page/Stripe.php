@@ -2,6 +2,9 @@
 
 require_once('vendor/autoload.php');
 
+
+
+
 /*
  * Webhook to process Stripe payments for recurring donations created with
  * Houdini / CommitChange / Proca Widget.
@@ -64,6 +67,8 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       case 'invoice.payment_succeeded':
       case 'invoice.payment_failed':
         return $this->handleRecurringPayment($event->data->object);
+      case 'wemove.subscription.import': // events we're rsending to re-sync
+        return $this->handleSubscriptionCreate($event->data->object);
         // change in amount or cancellation
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
@@ -80,6 +85,12 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     }
   }
 
+  private function handleSubscriptionCreate($subscription) {
+    // contact
+    // recurring
+    //
+  }
+
   private function handleSubscriptionUpdate($subscription) {
     $status = $subscription->status;
 
@@ -90,22 +101,12 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       throw new Exception("handleSubscriptionUpdate: No recurring contribution with trxn_id={$subscription->id} Exception: {$ex}");
     }
 
-    $CIVI_STATUS = [
-      'active' => 'In Progress',
-      'past_due' => 'Failed', // end state for us, since no more payment attempts are made
-      'unpaid' => 'Failed', // same
-      'canceled' => 'Cancelled',
-      // 'incomplete'
-      'incomplete_expired' => 'Failed', // terminal state
-      // 'trialing'
-    ];
-
     $to_update = ['id' => $contrib_recur['id']];
 
     // only update the status if we know what it is ? Not sure what to do here really.
-    if (array_key_exists($status, $CIVI_STATUS)) {
+    if (array_key_exists($status, $this->settings->recurringContributionstatusMap)) {
 
-      $to_update['contribution_status_id'] = $CIVI_STATUS[$status];
+      $to_update['contribution_status_id'] = $this->settings->recurringContributionstatusMap[$status];
 
       if ($status == 'canceled') {
         $canceled_at = new DateTime("@{$subscription->canceled_at}");
@@ -139,12 +140,18 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       'contribution_status_id' => 'Refunded',
     ]);
   }
+
+  public static function addRecurringPayment($invoice) {
+    $page = new CRM_WeAct_Page_Stripe();
+    return $page->handleRecurringPayment($invoice);
+  }
+
   private function handleRecurringPayment($invoice) {
     try {
       // i bet we'll need to try more than one field here ...
       $contrib_recur = civicrm_api3('ContributionRecur', 'getsingle', ['trxn_id' => $invoice->subscription]);
     } catch (CiviCRM_API3_Exception $ex) {
-      # print("\nhandlePayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
+      print("\nhandlePayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
       CRM_Core_Error::debug_log_message("Stripe: handleRecurringPayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
       return;
     }
@@ -165,7 +172,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     // and invoice
     $previous = $this->_findContribution($invoice);
     if ($previous) {
-       CRM_Core_Error::debug_log_message(
+      CRM_Core_Error::debug_log_message(
         "handlePayment: Found existing contribution for contribution recur " .
           "{$contrib_recur['id']} contribution " . json_encode($previous) . "\n"
       );
@@ -250,7 +257,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     }
   }
 
-  private function createContactFromCustomer($customer) {
+  static public function createContactFromCustomer($customer) {
     $contact = new CRM_WeAct_Contact();
     $contact->name = $customer->name;
     $contact->email = $customer->email;

@@ -21,4 +21,4 @@ tags
 vendor
 composer.lock
 
- .phpunit.result.cache
+.phpunit.result.cache
