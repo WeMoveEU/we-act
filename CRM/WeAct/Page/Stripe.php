@@ -67,9 +67,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       case 'invoice.payment_succeeded':
       case 'invoice.payment_failed':
         return $this->handleRecurringPayment($event->data->object);
-      case 'wemove.subscription.import': // events we're rsending to re-sync
-        return $this->handleSubscriptionCreate($event->data->object);
-        // change in amount or cancellation
+      // change in amount or cancellation
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
         return $this->handleSubscriptionUpdate($event->data->object);
@@ -83,12 +81,6 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
         CRM_Core_Error::debug_log_message("Stripe: Ignoring event: {$event->id} of type {$event->type}");
         return NULL;
     }
-  }
-
-  private function handleSubscriptionCreate($subscription) {
-    // contact
-    // recurring
-    //
   }
 
   private function handleSubscriptionUpdate($subscription) {
@@ -151,7 +143,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       // i bet we'll need to try more than one field here ...
       $contrib_recur = civicrm_api3('ContributionRecur', 'getsingle', ['trxn_id' => $invoice->subscription]);
     } catch (CiviCRM_API3_Exception $ex) {
-      print("\nhandlePayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
+      // print("\nhandlePayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
       CRM_Core_Error::debug_log_message("Stripe: handleRecurringPayment: No recurring contribution with trxn_id={$invoice->subscription} Exception: {$ex}");
       return;
     }
