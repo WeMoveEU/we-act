@@ -7,7 +7,7 @@ require_once('vendor/autoload.php');
 
 class CRM_WeAct_Action_StripeSubscriptionImport extends CRM_WeAct_Action {
 
-  public function __construct($subscription, $stripe = NULL) {
+  public function __construct($subscription_id, $stripe = NULL) {
     $this->actionType = 'donate';
     $this->externalSystem = 'stripe';
 
@@ -17,7 +17,9 @@ class CRM_WeAct_Action_StripeSubscriptionImport extends CRM_WeAct_Action {
       $this->stripeAPI = new CRM_WeAct_StripeAPI();
     }
 
+    $subscription = $this->stripeAPI->getSubscription($subscription_id);
     $this->stripeSubscription = $subscription;
+
     $this->stripeCustomer = $this->loadCustomer($subscription->customer);
     $this->contact = $this->buildContact($this->stripeCustomer);
 

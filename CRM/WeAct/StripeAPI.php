@@ -19,6 +19,10 @@ class CRM_WeAct_StripeAPI {
     return $this->stripeAPI->customer->get($customer_id);
   }
 
+  public function getSubscription($subscription_id) {
+    return $this->stripeAPI->subscription->get($subscription_id);
+  }
+
   public function getInvoices($subscription_id) {
     $invoices = $this->stripeAPI->invoices->get(["subscription" => $subscription_id]);
     $all = [];

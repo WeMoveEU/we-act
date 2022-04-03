@@ -13,8 +13,8 @@ require_once 'common.php';
 **/
 
 function _civicrm_api3_we_act_StripeSubcriptionImport_spec(&$spec) {
-  $spec['message'] = [
-    'title' => 'Stripe Subscription JSON object / message',
+  $spec['id'] = [
+    'title' => 'Stripe Subscription ID (sub_...)',
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 1
   ];
@@ -22,7 +22,7 @@ function _civicrm_api3_we_act_StripeSubcriptionImport_spec(&$spec) {
 
 function civicrm_api3_we_act_StripeSubscriptionImport($params) {
     return _we_act_process_message(
-        'CRM_WeAct_Action_StripeSubscriptionImport', 
-        $params['message']
+        'CRM_WeAct_Action_StripeSubscriptionImport',
+        $params['id']
     );
 }

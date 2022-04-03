@@ -32,20 +32,26 @@ class CRM_WeAct_Action_StripeSubscriptionImportTest extends CRM_WeAct_BaseTest {
           )
         )
       );
-    $importer = new CRM_WeAct_Action_StripeSubscriptionImport($subscription, $mockAPI);
+
+    $subscription = json_decode(file_get_contents(
+      'tests/stripe-messages/subscription.json'
+    ));
+    $mockAPI->method('getSubscription')->willReturn($subscription);
+
+    $importer = new CRM_WeAct_Action_StripeSubscriptionImport($subscription->id, $mockAPI);
     $processor = new CRM_WeAct_ActionProcessor();
 
     return $processor->process($importer);
   }
 
   public function testSubscriptionImport() {
-    $stripe_subscription = json_decode(file_get_contents(
+    $s = json_decode(file_get_contents(
       'tests/stripe-messages/subscription.json'
     ));
-    $subscription = $this->process($stripe_subscription);
-    $this->assertEquals($stripe_subscription->id, $subscription['trxn_id']);
+    $subscription = $this->process($s->id);
+    $this->assertEquals($s->id, $subscription['trxn_id']);
 
-    $payments = civicrm_api3('Contribution', 'get', [ 'contribution_recur_id' => $subscription['id']]);
+    $payments = civicrm_api3('Contribution', 'get', ['contribution_recur_id' => $subscription['id']]);
     $this->assertEquals(2, $payments['count']);
   }
 }
