@@ -4,7 +4,7 @@ require_once 'common.php';
 
 /**
  *
- * WeAct.StripeSubscriptionImport
+ * WeAct.ImportStripeSubscription
  *
  *    - message is a subscription object from the Stripe API
  *    - imports all the invoices as well
@@ -12,7 +12,7 @@ require_once 'common.php';
  *
 **/
 
-function _civicrm_api3_we_act_StripeSubcriptionImport_spec(&$spec) {
+function _civicrm_api3_we_act_stripe_spec(&$spec) {
   $spec['id'] = [
     'title' => 'Stripe Subscription ID (sub_...)',
     'type' => CRM_Utils_Type::T_STRING,
@@ -20,9 +20,9 @@ function _civicrm_api3_we_act_StripeSubcriptionImport_spec(&$spec) {
   ];
 }
 
-function civicrm_api3_we_act_StripeSubscriptionImport($params) {
+function civicrm_api3_we_act_stripe($params) {
     return _we_act_process_message(
         'CRM_WeAct_Action_StripeSubscriptionImport',
-        $params['id']
+        json_encode([ "id" => $params['id'] ])
     );
 }
