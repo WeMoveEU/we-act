@@ -7,7 +7,9 @@ require_once('vendor/autoload.php');
 
 class CRM_WeAct_Action_StripeSubscriptionImport extends CRM_WeAct_Action {
 
-  public function __construct($subscription_id, $stripe = NULL) {
+  public function __construct($message, $stripe = NULL) {
+    $subscription_id = $message->id;
+
     $this->actionType = 'donate';
     $this->externalSystem = 'stripe';
 
