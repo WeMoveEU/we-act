@@ -16,22 +16,23 @@ class CRM_WeAct_StripeAPI {
   }
 
   public function getCustomer($customer_id) {
-    return $this->stripeAPI->customer->get($customer_id);
+    return $this->stripeAPI->customers->retrieve($customer_id);
   }
 
   public function getSubscription($subscription_id) {
-    return $this->stripeAPI->subscription->get($subscription_id);
+    return $this->stripeAPI
+	  ->subscriptions->retrieve($subscription_id);
   }
 
   public function getInvoices($subscription_id) {
-    $invoices = $this->stripeAPI->invoices->get(["subscription" => $subscription_id]);
+    $invoices = $this->stripeAPI->invoices->all(["subscription" => $subscription_id]);
     $all = [];
     while (true) {
       foreach ($invoices['data'] as $invoice) {
         array_push($all, $invoice);
       }
       if ($invoices->has_more) {
-        $invoices = $this->stripeAPI->invoices->get([
+        $invoices = $this->stripeAPI->invoices->all([
           "subscription" => $subscription_id, "starting_after" => $invoice->id
         ]);
       }
