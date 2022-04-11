@@ -12,8 +12,9 @@ use Civi\Test\TransactionalInterface;
 class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
 
   public function setUp(): void {
+    // $import = new CRM_Utils_Migrate_Import();
+    // $import->run('/home/aaron/cividev/drupal/sites/all/modules/civicrm/ext/commitcivi/xml/weekly_custom_fields.xml');
     parent::setUp();
-
     $this->settings = CRM_WeAct_Settings::instance();
   }
 
@@ -211,6 +212,58 @@ class CRM_WeAct_Action_ProcaTest extends CRM_WeAct_BaseTest {
     $this->assertEquals($mandate['contact_id'], $contact['id']);
 
     // $this->verifyUTMS()
+  }
+
+  public function testSEPAWeekly() {
+     $proca_event = json_decode(
+      file_get_contents(
+        'tests/proca-messages/sepa-weekly.json'
+      )
+    );
+
+    $ret = $this->_process($proca_event);
+    $recurring = civicrm_api3('ContributionRecur', 'getsingle', ["id" => $ret['contrib']['id']]);
+    // print(json_encode($ret['contrib'], JSON_PRETTY_PRINT));
+
+    $this->assertEquals($recurring['currency'], 'EUR');
+    $this->assertEquals(
+      $recurring['amount'],
+      number_format($proca_event->action->donation->amount / 100, 2)
+    );
+    $this->assertEquals($recurring['trxn_id'], "proca_" . $proca_event->actionId);
+    $this->assertEquals(
+      $recurring['contribution_status_id'],
+      $this->settings->contributionStatusIds['pending']
+    );
+
+    $this->assertEquals($recurring['frequency_unit'], 'month'); // TODO: double check
+    $this->assertEquals($recurring['frequency_interval'], 1);
+    $this->assertEquals(
+      substr($recurring['start_date'], 0, 10),
+      substr($proca_event->action->createdAt, 0, 10)
+    );
+
+    $this->verifyWeekly($recurring, $proca_event->action->customFields->weeklyAmount);
+    $this->verifyUTMS($proca_event->tracking, NULL, $recurring);
+
+    $contact = civicrm_api3('Contact', 'getsingle', ["id" => $recurring['contact_id']]);
+    $this->assertEquals($contact['last_name'], $proca_event->contact->lastName);
+    $this->assertEquals($contact['first_name'], $proca_event->contact->firstName);
+
+    $email = civicrm_api3('Email', 'getsingle', ["contact_id" => $contact['id'], "limit" => 1]);
+    $this->assertEquals($email['email'], $proca_event->contact->email);
+
+    $mandate = civicrm_api3(
+      'SepaMandate',
+      'getsingle',
+      [
+        'entity_table' => 'civicrm_contribution_recur',
+        'entity_id' => $recurring['id']
+      ]
+    );
+    $this->assertEquals($mandate['type'], 'RCUR');
+    $this->assertEquals($mandate['iban'], str_replace(' ', '', $proca_event->action->donation->payload->iban));
+    $this->assertEquals($mandate['contact_id'], $contact['id']);
   }
 
   public function testSEPAMonthly() {

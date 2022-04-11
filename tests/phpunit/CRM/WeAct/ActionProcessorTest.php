@@ -74,7 +74,7 @@ class CRM_WeAct_ActionProcessorTest extends CRM_WeAct_BaseTest {
 
   protected function verifyUTMS($utms, $contribution, $recurring = NULL) {
     $settings = CRM_WeAct_Settings::instance();
-    # for ecah key in source, check it was saved for both
+    # for each key in source, check it was saved for both
     foreach ($utms as $key => $value) {
       if ($contribution) {
         $this->assertEquals(

@@ -5,6 +5,9 @@ class CRM_WeAct_Action_Donation {
   const CYCLE_DAY_FIRST = 6;
   const CYCLE_DAY_SECOND = 21;
 
+  public $isWeekly = false;
+  public $weeklyAmount = null;
+
   public function __construct() {
     $this->settings = CRM_WeAct_Settings::instance();
   }
@@ -45,14 +48,22 @@ class CRM_WeAct_Action_Donation {
   }
 
   public function createContribRecur($campaign_id, $contact_id, $action_page, $location, $utm) {
+
+
     if (substr($this->processor, -5) == '-sepa') {
       $create_mandate = $this->createMandate($contact_id, 'RCUR', $campaign_id, $action_page);
       //Mandates don't have utm fields, so associate them to recurring contrib created along with mandate
       $created = civicrm_api3('ContributionRecur', 'create', [
         'id' => $create_mandate['values'][0]['entity_id'],
+
+                // shared parameters with below
+
         $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
         $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
+        $this->settings->customFields['recur_is_weekly'] => $this->isWeekly,
+        $this->settings->customFields['recur_weekly_amount'] => $this->weeklyAmount,
+
       ]);
       // careful, a real create returns a list, an update returns a map.
       return $created['values'][$created['id']];
@@ -75,9 +86,14 @@ class CRM_WeAct_Action_Donation {
         'payment_processor_id' => $processor_id,
         'campaign_id' => $campaign_id,
         'is_test' => false, // $this->isTest,
+
+        // shared parameters with sepa above
         $this->settings->customFields['recur_utm_source'] => CRM_Utils_Array::value('source', $utm),
         $this->settings->customFields['recur_utm_medium'] => CRM_Utils_Array::value('medium', $utm),
         $this->settings->customFields['recur_utm_campaign'] => CRM_Utils_Array::value('campaign', $utm),
+        $this->settings->customFields['recur_weekly_is_weekly'] => $this->isWeekly,
+        $this->settings->customFields['recur_weekly_weekly_amount'] => $this->weeklyAmount,
+
       ];
       $create_recur = civicrm_api3('ContributionRecur', 'create', $params);
       $this->createContrib($campaign_id, $contact_id, $action_page, $location, $utm, $create_recur['id']);
