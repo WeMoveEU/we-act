@@ -137,8 +137,18 @@ class CRM_WeAct_CampaignCache {
     return $external_id;
   }
 
+  /**
+   * @param string $speakout_domain
+   * @param string $speakout_id
+   *
+   * @return string
+   */
+  protected function prepareAPIUrl(string $speakout_domain, string $speakout_id): string {
+    return sprintf("https://%s/api/v1/campaigns/%s", $speakout_domain, $speakout_id);
+  }
+
   protected function createSpeakoutCampaign($speakout_domain, $speakout_id) {
-    $url = "https://$speakout_domain/api/v1/campaigns/$speakout_id";
+    $url = $this->prepareAPIUrl($speakout_domain, $speakout_id);
     $user = CIVICRM_SPEAKOUT_USERS[$speakout_domain];
     $externalCampaign = json_decode($this->getRemoteContent($url, $user));
 
