@@ -96,7 +96,7 @@ class CRM_WeAct_CampaignCache {
   }
 
   protected function getExternalCampaign($external_system, $external_id) {
-    $key = "WeAct:ActionPage:$external_system:$external_id";
+    $key = "WeAct:ActionPage:$external_system:$external_id"; // fixme should be unique for campaign and surveys
     $campaign_id = $this->cache->get($key);
     if ($campaign_id === NULL) {
       $external_identifier = $this->externalIdentifier($external_system, $external_id);
@@ -119,6 +119,7 @@ class CRM_WeAct_CampaignCache {
       'donate' => 'Fundraising',
       'sign' => 'Petitions',
       'Trial campaign' => 'Trial campaign',
+      // fixme shouldn't be "Survey" on that list?
     ];
     $types = CRM_Core_PseudoConstant::get('CRM_Campaign_BAO_Campaign', 'campaign_type_id');
     $type = array_search($mapping[$categories[0]->name ?? $actionType], $types);
@@ -168,12 +169,12 @@ class CRM_WeAct_CampaignCache {
       'name' => $externalCampaign->internal_name,
       'title' => $externalCampaign->internal_name,
       'description' => $externalCampaign->name,
-      'external_identifier' => $externalCampaign->id,
+      'external_identifier' => $externalCampaign->id, // fixme #9 refactor to method
       'campaign_type_id' => $this->campaignType('sign', $externalCampaign->categories ?? []),
       'start_date' => date('Y-m-d H:i:s'),
       $fields['campaign_language'] => $locale,
       $fields['campaign_sender'] => $sender,
-      $fields['campaign_url'] => "https://$speakout_domain/campaigns/$slug",
+      $fields['campaign_url'] => "https://$speakout_domain/campaigns/$slug", // fixme #9 refactor to method
       $fields['campaign_slug'] => $slug,
       $fields['campaign_twitter_share'] => $externalCampaign->twitter_share_text,
       $fields['campaign_consent_ids'] => implode(',', $consentIds),
