@@ -89,7 +89,7 @@ class CRM_WeAct_CampaignCache {
     if (!$entry) {
       $urlments = parse_url($speakout_url);
       $speakout_domain = $urlments['host'];
-      $this->createSpeakoutCampaign($speakout_domain, $speakout_id);
+      $this->createSpeakoutCampaign('speakout', $speakout_domain, $speakout_id);
       $entry = $this->getExternalCampaign('speakout', $speakout_id);
     }
     return $entry;
@@ -148,7 +148,7 @@ class CRM_WeAct_CampaignCache {
     return sprintf("https://%s/api/v1/campaigns/%s", $speakout_domain, $speakout_id);
   }
 
-  protected function createSpeakoutCampaign($speakout_domain, $speakout_id) {
+  protected function createSpeakoutCampaign(string $system, $speakout_domain, $speakout_id) {
     $url = $this->prepareAPIUrl($speakout_domain, $speakout_id);
     $user = CIVICRM_SPEAKOUT_USERS[$speakout_domain];
     $externalCampaign = json_decode($this->getRemoteContent($url, $user));
@@ -163,13 +163,13 @@ class CRM_WeAct_CampaignCache {
     }
 
     $fields = $this->settings->customFields;
-
+    $externalIdentifier = $this->externalIdentifier($system, $speakout_id);
     $params = array(
       'sequential' => 1,
       'name' => $externalCampaign->internal_name,
       'title' => $externalCampaign->internal_name,
       'description' => $externalCampaign->name,
-      'external_identifier' => $externalCampaign->id, // fixme #9 refactor to method
+      'external_identifier' => $externalIdentifier,
       'campaign_type_id' => $this->campaignType('sign', $externalCampaign->categories ?? []),
       'start_date' => date('Y-m-d H:i:s'),
       $fields['campaign_language'] => $locale,
