@@ -148,6 +148,16 @@ class CRM_WeAct_CampaignCache {
     return sprintf("https://%s/api/v1/campaigns/%s", $speakout_domain, $speakout_id);
   }
 
+  /**
+   * @param string $speakout_domain
+   * @param string $slug
+   *
+   * @return string
+   */
+  protected function prepareSlug(string $speakout_domain, string $slug): string {
+    return sprintf("https://%s/campaigns/%s", $speakout_domain, $slug);
+  }
+
   protected function createSpeakoutCampaign(string $system, $speakout_domain, $speakout_id) {
     $url = $this->prepareAPIUrl($speakout_domain, $speakout_id);
     $user = CIVICRM_SPEAKOUT_USERS[$speakout_domain];
@@ -174,7 +184,7 @@ class CRM_WeAct_CampaignCache {
       'start_date' => date('Y-m-d H:i:s'),
       $fields['campaign_language'] => $locale,
       $fields['campaign_sender'] => $sender,
-      $fields['campaign_url'] => "https://$speakout_domain/campaigns/$slug", // fixme #9 refactor to method
+      $fields['campaign_url'] => $this->prepareSlug($speakout_domain, $slug),
       $fields['campaign_slug'] => $slug,
       $fields['campaign_twitter_share'] => $externalCampaign->twitter_share_text,
       $fields['campaign_consent_ids'] => implode(',', $consentIds),
