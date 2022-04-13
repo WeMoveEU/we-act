@@ -129,7 +129,7 @@ class CRM_WeAct_CampaignCache {
       'donate' => 'Fundraising',
       'sign' => 'Petitions',
       'Trial campaign' => 'Trial campaign',
-      // fixme shouldn't be "Survey" on that list?
+      'poll' => 'Survey',
     ];
     $types = CRM_Core_PseudoConstant::get('CRM_Campaign_BAO_Campaign', 'campaign_type_id');
     $type = array_search($mapping[$categories[0]->name ?? $actionType], $types);
@@ -168,6 +168,16 @@ class CRM_WeAct_CampaignCache {
     return sprintf("https://%s/campaigns/%s", $speakout_domain, $slug);
   }
 
+  /**
+   * @param array $categories
+   *
+   * @return int|string
+   * @throws \Exception
+   */
+  protected function prepareCampaignType($categories = []) {
+    return $this->campaignType('sign', $categories);
+  }
+
   protected function createSpeakoutCampaign(string $system, $speakout_domain, $speakout_id) {
     $url = $this->prepareAPIUrl($speakout_domain, $speakout_id);
     $user = CIVICRM_SPEAKOUT_USERS[$speakout_domain];
@@ -190,7 +200,7 @@ class CRM_WeAct_CampaignCache {
       'title' => $externalCampaign->internal_name,
       'description' => $externalCampaign->name,
       'external_identifier' => $externalIdentifier,
-      'campaign_type_id' => $this->campaignType('sign', $externalCampaign->categories ?? []),
+      'campaign_type_id' => $this->prepareCampaignType($externalCampaign->categories ?? []),
       'start_date' => date('Y-m-d H:i:s'),
       $fields['campaign_language'] => $locale,
       $fields['campaign_sender'] => $sender,
