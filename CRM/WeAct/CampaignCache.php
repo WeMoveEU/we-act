@@ -102,7 +102,7 @@ class CRM_WeAct_CampaignCache {
    * @return string
    */
   protected function keyForCache($external_system, $external_id): string {
-    return sprintf("WeAct:ActionPage:%s:%s", $external_system, $external_id);
+    return sprintf("WeAct:ActionPage:Campaign:%s:%s", $external_system, $external_id);
   }
 
   protected function getExternalCampaign($external_system, $external_id) {
