@@ -95,8 +95,18 @@ class CRM_WeAct_CampaignCache {
     return $entry;
   }
 
+  /**
+   * @param $external_system
+   * @param $external_id
+   *
+   * @return string
+   */
+  protected function keyForCache($external_system, $external_id): string {
+    return sprintf("WeAct:ActionPage:%s:%s", $external_system, $external_id);
+  }
+
   protected function getExternalCampaign($external_system, $external_id) {
-    $key = "WeAct:ActionPage:$external_system:$external_id"; // fixme should be unique for campaign and surveys
+    $key = $this->keyForCache($external_system, $external_id);
     $campaign_id = $this->cache->get($key);
     if ($campaign_id === NULL) {
       $external_identifier = $this->externalIdentifier($external_system, $external_id);
