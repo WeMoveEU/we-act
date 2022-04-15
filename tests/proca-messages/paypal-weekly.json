@@ -1,0 +1,171 @@
+{
+    "action": {
+        "actionType": "donate",
+        "createdAt": "2022-04-15T12:41:29Z",
+        "customFields": {
+            "amount": 1290,
+            "frequency": "monthly",
+            "initialAmount": 5,
+            "isWeekly": true,
+            "weeklyAmount": 3
+        },
+        "donation": {
+            "amount": 1290,
+            "currency": "EUR",
+            "frequencyUnit": "monthly",
+            "payload": {
+                "formValues": {
+                    "amount": 3,
+                    "frequency": "weekly",
+                    "initialAmount": 5
+                },
+                "provider": "paypal",
+                "response": {
+                    "facilitatorAccessToken": "A21AAL9elHEnzCdyGBHl9QKv6XOI0p327VoE2Pj7C2ZOqeJiPJId_CCoUW8_HtzMY0FVEedbfYHzzBSB84NZ1lQH4SU7e9KfQ",
+                    "orderID": "6CA78993ET599234N",
+                    "paymentSource": "paypal",
+                    "subscriptionID": "I-W5KXWLHL6YL6"
+                },
+                "subscription": {
+                    "billing_info": {
+                        "cycle_executions": [
+                            {
+                                "current_pricing_scheme_version": 1,
+                                "cycles_completed": 1,
+                                "cycles_remaining": 0,
+                                "sequence": 1,
+                                "tenure_type": "REGULAR",
+                                "total_cycles": 0,
+                                "total_price_per_cycle": {
+                                    "gross_amount": {
+                                        "currency_code": "EUR",
+                                        "value": "12.9"
+                                    },
+                                    "shipping_amount": {
+                                        "currency_code": "EUR",
+                                        "value": "0.0"
+                                    },
+                                    "tax_amount": {
+                                        "currency_code": "EUR",
+                                        "value": "0.0"
+                                    },
+                                    "total_item_amount": {
+                                        "currency_code": "EUR",
+                                        "value": "12.9"
+                                    }
+                                }
+                            }
+                        ],
+                        "failed_payments_count": 0,
+                        "last_payment": {
+                            "amount": {
+                                "currency_code": "EUR",
+                                "value": "12.9"
+                            },
+                            "time": "2022-04-15T12:41:27Z"
+                        },
+                        "next_billing_time": "2022-05-15T10:00:00Z",
+                        "outstanding_balance": {
+                            "currency_code": "EUR",
+                            "value": "0.0"
+                        }
+                    },
+                    "create_time": "2022-04-15T12:41:26Z",
+                    "id": "I-W5KXWLHL6YL6",
+                    "links": [
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W5KXWLHL6YL6/cancel",
+                            "method": "POST",
+                            "rel": "cancel"
+                        },
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W5KXWLHL6YL6",
+                            "method": "PATCH",
+                            "rel": "edit"
+                        },
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W5KXWLHL6YL6",
+                            "method": "GET",
+                            "rel": "self"
+                        },
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W5KXWLHL6YL6/suspend",
+                            "method": "POST",
+                            "rel": "suspend"
+                        },
+                        {
+                            "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-W5KXWLHL6YL6/capture",
+                            "method": "POST",
+                            "rel": "capture"
+                        }
+                    ],
+                    "plan_id": "P-7V29162651010031FMDM6IHA",
+                    "plan_overridden": false,
+                    "quantity": "1290",
+                    "shipping_amount": {
+                        "currency_code": "EUR",
+                        "value": "0.0"
+                    },
+                    "start_time": "2022-04-15T12:41:10Z",
+                    "status": "ACTIVE",
+                    "status_changed_by": "MERCHANT",
+                    "status_update_time": "2022-04-15T12:41:27Z",
+                    "subscriber": {
+                        "email_address": "boop@example.com",
+                        "name": {
+                            "given_name": "Boop",
+                            "surname": "Bweep"
+                        },
+                        "payer_id": "TR9A6ZU7H55XC"
+                    },
+                    "update_time": "2022-04-15T12:41:27Z"
+                },
+                "subscriptionId": "I-W5KXWLHL6YL6"
+            }
+        },
+        "testing": false
+    },
+    "actionId": 390,
+    "actionPage": {
+        "locale": "en",
+        "name": "birds/minimumbasicseeds",
+        "supporterConfirmTemplate": null,
+        "thankYouTemplate": "3568892",
+        "thankYouTemplateRef": null
+    },
+    "actionPageId": 1,
+    "campaign": {
+        "externalId": null,
+        "name": "seeds",
+        "title": "Seeds"
+    },
+    "campaignId": 1,
+    "contact": {
+        "contactRef": "jQzIO45P-zQIQb2ynoX4R2WzFDhfDXw1i1uXhCBH3z0",
+        "email": "boop@example.com",
+        "firstName": "Boop",
+        "lastName": "Bweep"
+    },
+    "org": {
+        "name": "birdsbirdsbirds",
+        "title": "Birds Birds Birds"
+    },
+    "orgId": 2,
+    "personalInfo": null,
+    "privacy": {
+        "emailStatus": null,
+        "emailStatusChanged": null,
+        "givenAt": "2022-04-15T12:41:29Z",
+        "optIn": false,
+        "withConsent": true
+    },
+    "schema": "proca:action:2",
+    "stage": "deliver",
+    "tracking": {
+        "campaign": "campaign-ing",
+        "content": "content-ing",
+        "location": "http://localhost:3000/",
+        "medium": "medium-ing",
+        "source": "sourc-ing"
+    }
+}
