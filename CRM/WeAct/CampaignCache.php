@@ -95,12 +95,6 @@ class CRM_WeAct_CampaignCache {
     return $entry;
   }
 
-  /**
-   * @param $external_system
-   * @param $external_id
-   *
-   * @return string
-   */
   protected function keyForCache($external_system, $external_id): string {
     return sprintf("WeAct:ActionPage:Campaign:%s:%s", $external_system, $external_id);
   }
@@ -139,6 +133,12 @@ class CRM_WeAct_CampaignCache {
     return $type;
   }
 
+  /**
+   * Speakout is the historical campaign provider and thus the default external system,
+   * the external id pattern must be kept for backward compatibility.
+   * The distinction between the 2 Speakout instances is based on the id value (lesser or greater than 10000).
+   * Houdini ids have "cc_" prepended to them, so no need for further distinction.
+   */
   public function externalIdentifier($system, $id) {
     if ($system == 'houdini' || $system == 'speakout') {
       $external_id = $id;
@@ -146,36 +146,6 @@ class CRM_WeAct_CampaignCache {
       $external_id = "{$system}_$id";
     }
     return $external_id;
-  }
-
-  /**
-   * @param string $speakout_domain
-   * @param string $speakout_id
-   *
-   * @return string
-   */
-  protected function prepareAPIUrl(string $speakout_domain, string $speakout_id): string {
-    return sprintf("https://%s/api/v1/campaigns/%s", $speakout_domain, $speakout_id);
-  }
-
-  /**
-   * @param string $speakout_domain
-   * @param string $slug
-   *
-   * @return string
-   */
-  protected function prepareSlug(string $speakout_domain, string $slug): string {
-    return sprintf("https://%s/campaigns/%s", $speakout_domain, $slug);
-  }
-
-  /**
-   * @param array $categories
-   *
-   * @return int|string
-   * @throws \Exception
-   */
-  protected function prepareCampaignType($categories = []) {
-    return $this->campaignType('sign', $categories);
   }
 
   protected function createSpeakoutCampaign($speakout_domain, $speakout_id) {
@@ -244,5 +214,19 @@ class CRM_WeAct_CampaignCache {
     } else {
       throw new Exception('Speakout campaign is unavailable' . $url);
     }
+  }
+
+  /* The one-liners below are only for the purpose of being overridable by a child class */
+
+  protected function prepareAPIUrl(string $speakout_domain, string $speakout_id): string {
+    return sprintf("https://%s/api/v1/campaigns/%s", $speakout_domain, $speakout_id);
+  }
+
+  protected function prepareSlug(string $speakout_domain, string $slug): string {
+    return sprintf("https://%s/campaigns/%s", $speakout_domain, $slug);
+  }
+
+  protected function prepareCampaignType($categories = []) {
+    return $this->campaignType('sign', $categories);
   }
 }
