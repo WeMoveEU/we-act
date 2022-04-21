@@ -95,10 +95,6 @@ class CRM_WeAct_CampaignCache {
     return $entry;
   }
 
-  protected function keyForCache($external_system, $external_id): string {
-    return sprintf("WeAct:ActionPage:Campaign:%s:%s", $external_system, $external_id);
-  }
-
   protected function getExternalCampaign($external_system, $external_id) {
     $key = $this->keyForCache($external_system, $external_id);
     $campaign_id = $this->cache->get($key);
@@ -149,7 +145,7 @@ class CRM_WeAct_CampaignCache {
   }
 
   protected function createSpeakoutCampaign($speakout_domain, $speakout_id) {
-    $url = $this->prepareAPIUrl($speakout_domain, $speakout_id);
+    $url = $this->prepareSpeakoutAPIUrl($speakout_domain, $speakout_id);
     $user = CIVICRM_SPEAKOUT_USERS[$speakout_domain];
     $externalCampaign = json_decode($this->getRemoteContent($url, $user));
 
@@ -174,7 +170,7 @@ class CRM_WeAct_CampaignCache {
       'start_date' => date('Y-m-d H:i:s'),
       $fields['campaign_language'] => $locale,
       $fields['campaign_sender'] => $sender,
-      $fields['campaign_url'] => $this->prepareSlug($speakout_domain, $slug),
+      $fields['campaign_url'] => $this->prepareSpeakoutCampaignUrl($speakout_domain, $slug),
       $fields['campaign_slug'] => $slug,
       $fields['campaign_twitter_share'] => $externalCampaign->twitter_share_text,
       $fields['campaign_consent_ids'] => implode(',', $consentIds),
@@ -218,11 +214,15 @@ class CRM_WeAct_CampaignCache {
 
   /* The one-liners below are only for the purpose of being overridable by a child class */
 
-  protected function prepareAPIUrl(string $speakout_domain, string $speakout_id): string {
+  protected function keyForCache($external_system, $external_id): string {
+    return sprintf("WeAct:ActionPage:Campaign:%s:%s", $external_system, $external_id);
+  }
+
+  protected function prepareSpeakoutAPIUrl(string $speakout_domain, string $speakout_id): string {
     return sprintf("https://%s/api/v1/campaigns/%s", $speakout_domain, $speakout_id);
   }
 
-  protected function prepareSlug(string $speakout_domain, string $slug): string {
+  protected function prepareSpeakoutCampaignUrl(string $speakout_domain, string $slug): string {
     return sprintf("https://%s/campaigns/%s", $speakout_domain, $slug);
   }
 
