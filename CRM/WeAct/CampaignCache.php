@@ -26,7 +26,7 @@ class CRM_WeAct_CampaignCache {
       $campaign = $this->getOrCreateSpeakout($action->location, $action->locationId);
     }
 
-    // If not, use the action page as an ebxternal identifier of the campaign
+    // If not, use the action page as an external identifier of the campaign
     if (!$campaign) {
 
       $campaign = $this->getExternalCampaign($action->externalSystem, $action->actionPageId);
@@ -89,7 +89,7 @@ class CRM_WeAct_CampaignCache {
     if (!$entry) {
       $urlments = parse_url($speakout_url);
       $speakout_domain = $urlments['host'];
-      $this->createSpeakoutCampaign('speakout', $speakout_domain, $speakout_id);
+      $this->createSpeakoutCampaign($speakout_domain, $speakout_id);
       $entry = $this->getExternalCampaign('speakout', $speakout_id);
     }
     return $entry;
@@ -178,7 +178,7 @@ class CRM_WeAct_CampaignCache {
     return $this->campaignType('sign', $categories);
   }
 
-  protected function createSpeakoutCampaign(string $system, $speakout_domain, $speakout_id) {
+  protected function createSpeakoutCampaign($speakout_domain, $speakout_id) {
     $url = $this->prepareAPIUrl($speakout_domain, $speakout_id);
     $user = CIVICRM_SPEAKOUT_USERS[$speakout_domain];
     $externalCampaign = json_decode($this->getRemoteContent($url, $user));
@@ -193,7 +193,7 @@ class CRM_WeAct_CampaignCache {
     }
 
     $fields = $this->settings->customFields;
-    $externalIdentifier = $this->externalIdentifier($system, $speakout_id);
+    $externalIdentifier = $this->externalIdentifier('speakout', $speakout_id);
     $params = array(
       'sequential' => 1,
       'name' => $externalCampaign->internal_name,

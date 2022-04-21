@@ -72,7 +72,7 @@ class CRM_WeAct_SurveyCache extends CRM_WeAct_CampaignCache {
     if (!$entry) {
       $urlments = parse_url($speakout_url);
       $speakout_domain = $urlments['host'];
-      $this->createSpeakoutCampaign('speakout', $speakout_domain, $speakout_id);
+      $this->createSpeakoutCampaign($speakout_domain, $speakout_id);
       $entry = $this->getExternalCampaign('speakout', $speakout_id);
     }
     return $entry;
