@@ -54,6 +54,11 @@ jobs:
           repository: WeMoveEU/com.drastikbydesign.stripe
           ref: wemove-6.5.7
           path: drupal/sites/all/modules/civicrm/ext/stripe
+      - uses: actions/checkout@v2
+        with:
+          repository: WeMoveEU/commitcivi.git
+          ref: master
+          path: drupal/sites/all/modules/civicrm/ext/commitcivi
 
       - name: Install dependencies' dependencies...
         run: composer install
