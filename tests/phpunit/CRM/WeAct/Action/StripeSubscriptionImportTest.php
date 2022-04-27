@@ -38,7 +38,7 @@ class CRM_WeAct_Action_StripeSubscriptionImportTest extends CRM_WeAct_BaseTest {
     ));
     $mockAPI->method('getSubscription')->willReturn($subscription);
 
-    $importer = new CRM_WeAct_Action_StripeSubscriptionImport($subscription->id, $mockAPI);
+    $importer = new CRM_WeAct_Action_StripeSubscriptionImport([ "id" => $subscription->id ], $mockAPI);
     $processor = new CRM_WeAct_ActionProcessor();
 
     return $processor->process($importer);

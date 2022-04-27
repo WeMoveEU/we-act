@@ -1,0 +1,70 @@
+{
+    "action": {
+        "actionType": "donate",
+        "createdAt": "2022-04-11T19:47:27Z",
+        "customFields": {
+            "amount": 1290,
+            "frequency": "monthly",
+            "initialAmount": 5,
+            "isWeekly": true,
+            "paymentMethod": "sepa",
+            "weeklyAmount": 3
+        },
+        "donation": {
+            "amount": 1290,
+            "currency": "EUR",
+            "frequencyUnit": "monthly",
+            "payload": {
+                "iban": "FR76 3005 6006 8606 8669 9003 855",
+                "provider": "sepa"
+            }
+        },
+        "testing": false
+    },
+    "actionId": 378,
+    "actionPage": {
+        "locale": "en",
+        "name": "birds/minimumbasicseeds",
+        "supporterConfirmTemplate": null,
+        "thankYouTemplate": "3568892",
+        "thankYouTemplateRef": null
+    },
+    "actionPageId": 1,
+    "campaign": {
+        "externalId": null,
+        "name": "seeds",
+        "title": "Seeds"
+    },
+    "campaignId": 1,
+    "contact": {
+        "area": "BE",
+        "contactRef": "gSpF68cZYVyWAXVScvGcZnYqippJi-AxrAjFhlYQ9GE",
+        "country": "BE",
+        "email": "aaronelliotross+jusuxoneta@gmail.com",
+        "firstName": "Blaine",
+        "lastName": "Lambert",
+        "postcode": "88 LL CC"
+    },
+    "org": {
+        "name": "birdsbirdsbirds",
+        "title": "Birds Birds Birds"
+    },
+    "orgId": 2,
+    "personalInfo": null,
+    "privacy": {
+        "emailStatus": null,
+        "emailStatusChanged": null,
+        "givenAt": "2022-04-11T19:47:27Z",
+        "optIn": false,
+        "withConsent": true
+    },
+    "schema": "proca:action:2",
+    "stage": "deliver",
+    "tracking": {
+        "campaign": "unknown",
+        "content": "",
+        "location": "http://localhost:3000/",
+        "medium": "unknown",
+        "source": "unknown"
+    }
+}

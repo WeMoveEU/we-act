@@ -48,7 +48,7 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
   }
 
   protected function buildDonation($action_id, $json_action) {
-    $frequencyMap = ['one_off' => 'one-off', 'monthly' => 'month', 'weekly' => 'week', 'daily' => 'day'];
+    $frequencyMap = ['one_off' => 'one-off', 'monthly' => 'month'];
     $settings = CRM_WeAct_Settings::instance();
 
     $donation = new CRM_WeAct_Action_Donation();
@@ -57,6 +57,10 @@ class CRM_WeAct_Action_Proca extends CRM_WeAct_Action {
     $donation->amount = intval($json_action->donation->amount) / 100;
     $donation->fee = 0;
     $donation->currency = strtoupper($json_action->donation->currency);
+    if (@$json_action->customFields->isWeekly) {
+      $donation->isWeekly = True;
+      $donation->weeklyAmount = $json_action->customFields->weeklyAmount;
+    }
     if (@$frequencyMap[$json_action->donation->frequencyUnit]) {
       $donation->frequency = $frequencyMap[$json_action->donation->frequencyUnit];
     } else {

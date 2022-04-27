@@ -145,6 +145,10 @@ SQL
     foreach ($campaign_fields as $key => $field_name) {
       $custom_fields["campaign_$key"] = $this->getCustomField('speakout_integration', $field_name);
     }
+
+    $custom_fields['recur_is_weekly'] = $this->getCustomField('recur_weekly','is_weekly');
+    $custom_fields['recur_weekly_amount'] = $this->getCustomField('recur_weekly','weekly_amount');
+
     return $custom_fields;
   }
 
