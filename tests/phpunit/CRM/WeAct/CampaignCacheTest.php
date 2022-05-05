@@ -19,8 +19,8 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     parent::setUp();
   }
 
-  public function buildCache($guzzleClient) {
-    return new CRM_WeAct_CampaignCache(Civi::cache(), $guzzleClient);
+  public function buildCache($guzzleClient, $actionType = 'petition') {
+    return new CRM_WeAct_CampaignCache(Civi::cache(), $guzzleClient, $actionType);
   }
 
   // Test that an event from Proca that is not connected to a Speakout Campaign
