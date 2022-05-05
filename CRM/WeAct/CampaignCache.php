@@ -2,10 +2,21 @@
 
 class CRM_WeAct_CampaignCache {
 
-  public function __construct($cache, $guzzleClient) {
+  /**
+   * @var string
+   */
+  private $actionType;
+
+  /**
+   * @param $cache
+   * @param $guzzleClient
+   * @param string $actionType Derived from RabbitMQ message.action_type, [ petition | poll ]
+   */
+  public function __construct($cache, $guzzleClient, string $actionType = 'petition') {
     $this->settings = CRM_WeAct_Settings::instance();
     $this->cache = $cache;
     $this->guzzleClient = $guzzleClient;
+    $this->actionType = $actionType;
   }
 
   /**
@@ -136,6 +147,15 @@ class CRM_WeAct_CampaignCache {
    * Houdini ids have "cc_" prepended to them, so no need for further distinction.
    */
   public function externalIdentifier($system, $id) {
+    if ($this->isSurvey()) {
+      /**
+       * Surveys from Speakout don't share the id sequence of Speakout campaigns,
+       * so their external identifier needs to be prefixed in CiviCRM
+       * because this mysql field has unique key.
+       */
+      return sprintf("%s_survey_%s", $system, $id);
+    }
+
     if ($system == 'houdini' || $system == 'speakout') {
       $external_id = $id;
     } else {
@@ -214,19 +234,39 @@ class CRM_WeAct_CampaignCache {
 
   /* The one-liners below are only for the purpose of being overridable by a child class */
 
+  private function isSurvey(): bool {
+    return $this->actionType == 'poll';
+  }
+
   protected function keyForCache($external_system, $external_id): string {
+    if ($this->isSurvey()) {
+      return sprintf("WeAct:ActionPage:Survey:%s:%s", $external_system, $external_id);
+    }
+
     return sprintf("WeAct:ActionPage:Campaign:%s:%s", $external_system, $external_id);
   }
 
   protected function prepareSpeakoutAPIUrl(string $speakout_domain, string $speakout_id): string {
+    if ($this->isSurvey()) {
+      return sprintf("https://%s/api/v1/surveys/%s", $speakout_domain, $speakout_id);
+    }
+
     return sprintf("https://%s/api/v1/campaigns/%s", $speakout_domain, $speakout_id);
   }
 
   protected function prepareSpeakoutCampaignUrl(string $speakout_domain, string $slug): string {
+    if ($this->isSurvey()) {
+      return sprintf("https://%s/surveys/%s", $speakout_domain, $slug);
+    }
+
     return sprintf("https://%s/campaigns/%s", $speakout_domain, $slug);
   }
 
   protected function prepareCampaignType($categories = []) {
+    if ($this->isSurvey()) {
+      return $this->campaignType('poll', $categories);
+    }
+
     return $this->campaignType('sign', $categories);
   }
 }
