@@ -67,7 +67,7 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
       case 'invoice.payment_succeeded':
       case 'invoice.payment_failed':
         return $this->handleRecurringPayment($event->data->object);
-      // change in amount or cancellation
+        // change in amount or cancellation
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
         return $this->handleSubscriptionUpdate($event->data->object);
@@ -174,6 +174,12 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     // stripe copies the metadata for us, but older subscriptions won't have it,
     // so careful!
     $metadata = $invoice->lines->data[0]->metadata;
+    if (!$metadata) {
+      CRM_Core_Error::debug_log_message(
+        "handlePayment: Stripe doesn't have metadata for subscription " .
+          "{$invoice->subscription}, skipping the payment confirmation."
+      );
+    }
     $created_dt = new DateTime("@{$invoice->created}");
 
     // take what we can get...
@@ -200,6 +206,30 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
     CRM_Core_Error::debug_log_message("Stripe: handleRecurringPayment: Creating contribution with " . json_encode($payment_params));
 
     $ret = civicrm_api3('Contribution', 'create', $payment_params);
+
+    $publisher = CRM_Rabbitizen_Publisher('proca_confirmations'); # is the q name configured somewhere?
+    $publisher->publish(json_encode(
+      [
+        'action' => [
+          'actionType' => 'recurring-payment',
+          'payload' => $invoice,
+
+          'contact' => [
+            'name' => $invoice->customer_name,
+            'first_name' => $metadata->firstname,
+            'last_name' => $metadata->lastname,
+          ],
+          'donation' => [
+            'amount' => $invoice->amount_paid,
+            'currency' => $invoice->currency,
+            'provider' => 'stripe'
+          ],
+          'tracking' => [ 'campaign' => $metadata->speakoutCampaign ],
+          'metadata' => $metadata
+        ]
+      ]
+    ));
+
     return $ret['values'][$ret['id']]; // so so weird
   }
 
