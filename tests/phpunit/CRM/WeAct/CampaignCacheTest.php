@@ -120,7 +120,7 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     $camp_cache = $this->buildCache(new Client(['handler' => $mockStack]));
     $campaign = $camp_cache->getFromAction($action);
     $this->assertGreaterThan(0, $campaign['id']);
-    $this->assertEquals(1339, $campaign['external_identifier']);
+    $this->assertEquals("proca_1339", $campaign['external_identifier']);
   }
 
   // Test that an event from Proca that doesn't have
