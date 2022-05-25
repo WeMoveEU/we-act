@@ -28,7 +28,9 @@ class CRM_WeAct_CampaignCache {
     // Location ID is set to speakout campaign in custom fields in paypal and
     // proca messages. So if we have it defined, ask Speakout for it!
     if (!$campaign && @$action->locationId) {
-      $campaign = $this->getOrCreateSpeakout($action->location, $action->locationId);
+      // todo all calls to method getFromAction() work with default extenal system = speakout
+      //  but should be $action->externalSystem
+      $campaign = $this->getOrCreateSpeakout($action->location, $action->locationId, 'speakout');
     }
 
     // If not, use the action page as an external identifier of the campaign
