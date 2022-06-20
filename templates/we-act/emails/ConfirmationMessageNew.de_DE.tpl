@@ -7,7 +7,7 @@
 <div>#CONFIRMATION_BLOCK</div>
 
 <p style="font-size:16px;font-family: arial,helvetica,sans-serif;">Ich danke Ihnen,<br />
-  Annemarie Botzki<br />
+  Thomas Maisey<br />
   für das WeMove.EU-Team</p>
 
 <div>#PRIVACY_BLOCK</div>
