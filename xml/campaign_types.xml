@@ -27,5 +27,15 @@
       <option_group_name>campaign_type</option_group_name>
       <weight>5</weight>
     </OptionValue>
+    <OptionValue>
+      <label>Survey</label>
+      <value>8</value>
+      <name>Survey</name>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>campaign_type</option_group_name>
+      <weight>8</weight>
+    </OptionValue>
   </OptionValues>
 </CustomData>

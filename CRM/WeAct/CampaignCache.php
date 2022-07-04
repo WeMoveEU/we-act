@@ -138,7 +138,7 @@ class CRM_WeAct_CampaignCache {
     $types = CRM_Core_PseudoConstant::get('CRM_Campaign_BAO_Campaign', 'campaign_type_id');
     $type = array_search($mapping[$categories[0]->name ?? $actionType], $types);
     if (empty($type)) {
-      throw new Exception("Unsupported action type");
+      throw new Exception("Unsupported action type '$actionType'");
     }
     return $type;
   }
