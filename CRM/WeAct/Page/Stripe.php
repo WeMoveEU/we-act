@@ -121,6 +121,17 @@ class CRM_WeAct_Page_Stripe extends CRM_Core_Page {
   }
 
   private function handleRefund($charge) {
+    $refund = $charge->refunds->data[0];
+    if ($refund->reason == 'fraudulent') {
+      # maybe high risk transactions don't get to us initially? anyway, the
+      # charges for these refunds are not found.
+      CRM_Core_Error::debug_log_message(
+        "Stripe: handleRefund: Ignore refund of fraudulent transaction: " 
+        . json_encode($charge) 
+        . " Stripe Charge {$charge->id}"
+      );
+      return;
+    }
     $found = $this->_findContribution($charge);
     if (!$found) {
       throw new Exception("handleRefund: No contribution found for charge: " . json_encode($charge));
