@@ -109,7 +109,7 @@ class CRM_WeAct_CampaignCache {
   }
 
   protected function getExternalCampaign($external_system, $external_id) {
-    $key = $this->keyForCache($external_system, $external_id);
+    $key = "WeAct:ActionPage:$external_system:$external_id";
     $campaign_id = $this->cache->get($key);
     if ($campaign_id === NULL) {
       $external_identifier = $this->externalIdentifier($external_system, $external_id);
@@ -230,10 +230,6 @@ class CRM_WeAct_CampaignCache {
     } else {
       throw new Exception('Speakout campaign is unavailable' . $url);
     }
-  }
-
-  protected function keyForCache($external_system, $external_id): string {
-    return sprintf("WeAct:ActionPage:Campaign:%s:%s", $external_system, $external_id);
   }
 
   protected function prepareSpeakoutAPIUrl(string $speakout_domain, string $speakout_id, string $external_system): string {
