@@ -185,21 +185,15 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
   public function testSpeakoutSurveyNew() {
     $speakoutSurveyId = 10;
     $externalSystem = "speakout_survey";
-    // todo prepare survey object, not standard campaign
-    //  for example CRM_WeAct_SurveyTest::survey($id)
     $mockHandler = new MockHandler([
-      new Response(200, [], CRM_WeAct_SpeakoutTest::simpleEnglishPetitionJSON($speakoutSurveyId)),
-      new Response(200, [], CRM_WeAct_SpeakoutTest::parentCampaignJSON(
-        $speakoutSurveyId - 1,
-        'some-survey-parent'
-      )),
+      new Response(200, [], CRM_WeAct_SpeakoutTest::surveyJSON($speakoutSurveyId)),
     ]);
 
     $mockStack = HandlerStack::create($mockHandler);
     $camp_cache = $this->buildCache(new Client(['handler' => $mockStack]));
     $entry = $camp_cache->getOrCreateSpeakout('https://speakout', $speakoutSurveyId, $externalSystem);
-    $expected = "{$externalSystem}_{$speakoutSurveyId}";
-    $this->assertEquals($expected, $entry['external_identifier']);
+    $this->assertEquals('2021-06-some-speakout-survey-EN', $entry['name']);
+    $this->assertEquals("{$externalSystem}_{$speakoutSurveyId}", $entry['external_identifier']);
   }
 
 }

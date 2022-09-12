@@ -174,7 +174,11 @@ class CRM_WeAct_CampaignCache {
 
     $locale = $externalCampaign->locale;
     $slug = ($externalCampaign->slug != '' ? $externalCampaign->slug : 'speakout_'.$externalCampaign->id);
-    $consentIds = array_keys(get_object_vars($externalCampaign->consents));
+    if (isset($externalCampaign->consents)) {
+      $consentIds = array_keys(get_object_vars($externalCampaign->consents));
+    } else {
+      $consentIds = [];
+    }
     if ($externalCampaign->thankyou_from_email) {
       $sender = "\"$externalCampaign->thankyou_from_name\" &lt;$externalCampaign->thankyou_from_email&gt;";
     } else {
@@ -187,7 +191,7 @@ class CRM_WeAct_CampaignCache {
       'sequential' => 1,
       'name' => $externalCampaign->internal_name,
       'title' => $externalCampaign->internal_name,
-      'description' => $externalCampaign->name,
+      'description' => $externalCampaign->name ?? $externalCampaign->title,
       'external_identifier' => $externalIdentifier,
       'campaign_type_id' => $this->prepareCampaignType($externalCampaign->categories ?? [], $external_system),
       'start_date' => date('Y-m-d H:i:s'),
@@ -204,22 +208,25 @@ class CRM_WeAct_CampaignCache {
     );
     $create_result = civicrm_api3('Campaign', 'create', $params);
 
-    // This is done in a separate step even if the parent campaign is defined,
-    // to avoid circular-reference drama (getCampaignByExternalId may call this function)
-    if ($externalCampaign->parent_campaign_id) {
-      // Not the correct URL, but assuming that only the host part matters
-      $parent = $this->getOrCreateSpeakout($url, $externalCampaign->parent_campaign_id, $external_system);
-      $parent_params = [
-        'id' => $create_result['values'][0]['id'],
-        'parent_id'=> $parent['id'],
-      ];
-    } else {
-      $parent_params = [
-        'id' => $create_result['values'][0]['id'],
-        'parent_id'=> $create_result['values'][0]['id'],
-      ];
+    //Surveys don't have a parent
+    if ($external_system != 'speakout_survey') {
+      // This is done in a separate step even if the parent campaign is defined,
+      // to avoid circular-reference drama (getCampaignByExternalId may call this function)
+      if ($externalCampaign->parent_campaign_id) {
+        // Not the correct URL, but assuming that only the host part matters
+        $parent = $this->getOrCreateSpeakout($url, $externalCampaign->parent_campaign_id, $external_system);
+        $parent_params = [
+          'id' => $create_result['values'][0]['id'],
+          'parent_id'=> $parent['id'],
+        ];
+      } else {
+        $parent_params = [
+          'id' => $create_result['values'][0]['id'],
+          'parent_id'=> $create_result['values'][0]['id'],
+        ];
+      }
+      civicrm_api3('Campaign', 'create', $parent_params);
     }
-    civicrm_api3('Campaign', 'create', $parent_params);
   }
 
   private function getRemoteContent($url, $user = NULL) {
