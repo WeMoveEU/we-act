@@ -134,15 +134,7 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
 
     $action = new CRM_WeAct_Action_Proca($proca_event);
 
-    $mockHandler = new MockHandler([
-      new Response(200, [], CRM_WeAct_SpeakoutTest::simpleEnglishPetitionJSON(1339)),
-      new Response(200, [], CRM_WeAct_SpeakoutTest::parentCampaignJSON(
-        1338,
-        'some-speakout-parent'
-      )),
-    ]);
-    $mockStack = HandlerStack::create($mockHandler);
-    $camp_cache = $this->buildCache(new Client(['handler' => $mockStack]));
+    $camp_cache = $this->buildCache(NULL);
     $campaign = $camp_cache->getFromAction($action);
     $this->assertEquals($this->campaignId, $campaign['id']);
   }
