@@ -19,6 +19,6 @@ function _we_act_process_message($clazz, $message) {
     }
   }
   else {
-    return civicrm_api3_create_error("Could not decode {$params['message']}", ['retry_later' => FALSE]);
+    return civicrm_api3_create_error("Could not decode {$message}", ['retry_later' => FALSE]);
   }
 }

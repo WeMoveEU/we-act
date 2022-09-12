@@ -85,6 +85,16 @@ abstract class CRM_WeAct_BaseTest extends \PHPUnit\Framework\TestCase implements
     return $get_entity['values'][0];
   }
 
+  public function verifyWeekly($recurring, $amount) {
+    $settings = CRM_WeAct_Settings::instance();  $this->assertEquals(
+      $amount,
+      @$recurring[$settings->customFields["recur_weekly_amount"]]
+    );
+    $this->assertEquals(
+      true,
+      @$recurring[$settings->customFields["recur_is_weekly"]]
+    );
+  }
 
   protected function verifyUTMS($utms, $contribution, $recurring = NULL) {
     $settings = CRM_WeAct_Settings::instance();
