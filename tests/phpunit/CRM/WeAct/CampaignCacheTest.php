@@ -173,4 +173,19 @@ class CRM_WeAct_CampaignCacheTest extends CRM_WeAct_BaseTest {
     $this->assertEquals($campaign['name'], 'existing-PL');
     $this->assertEquals($campaign['external_identifier'], 'cc_42');
   }
+
+  public function testSpeakoutSurveyNew() {
+    $speakoutSurveyId = 10;
+    $externalSystem = "speakout_survey";
+    $mockHandler = new MockHandler([
+      new Response(200, [], CRM_WeAct_SpeakoutTest::surveyJSON($speakoutSurveyId)),
+    ]);
+
+    $mockStack = HandlerStack::create($mockHandler);
+    $camp_cache = $this->buildCache(new Client(['handler' => $mockStack]));
+    $entry = $camp_cache->getOrCreateSpeakout('https://speakout', $speakoutSurveyId, $externalSystem);
+    $this->assertEquals('2021-06-some-speakout-survey-EN', $entry['name']);
+    $this->assertEquals("{$externalSystem}_{$speakoutSurveyId}", $entry['external_identifier']);
+  }
+
 }

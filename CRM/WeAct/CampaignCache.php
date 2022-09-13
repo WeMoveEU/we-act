@@ -2,7 +2,11 @@
 
 class CRM_WeAct_CampaignCache {
 
-  public function __construct($cache, $guzzleClient) {
+  /**
+   * @param $cache The underlying cache instance used to store campaigns
+   * @param $guzzleClient The HTTP client used to retrieve campaign data from external systems
+   */
+  public function __construct(CRM_Utils_Cache_Interface $cache, $guzzleClient) {
     $this->settings = CRM_WeAct_Settings::instance();
     $this->cache = $cache;
     $this->guzzleClient = $guzzleClient;
@@ -23,10 +27,12 @@ class CRM_WeAct_CampaignCache {
     // Location ID is set to speakout campaign in custom fields in paypal and
     // proca messages. So if we have it defined, ask Speakout for it!
     if (!$campaign && @$action->locationId) {
-      $campaign = $this->getOrCreateSpeakout($action->location, $action->locationId);
+      // The action may come from another external system (e.g. proca) but the locationId still refers to a speakout campaign
+      // So we force the $external_system argument to 'speakout'
+      $campaign = $this->getOrCreateSpeakout($action->location, $action->locationId, 'speakout');
     }
 
-    // If not, use the action page as an ebxternal identifier of the campaign
+    // If no better option, create a simple campaign with the action page id as an external identifier
     if (!$campaign) {
 
       $campaign = $this->getExternalCampaign($action->externalSystem, $action->actionPageId);
@@ -84,13 +90,20 @@ class CRM_WeAct_CampaignCache {
     return NULL;
   }
 
-  public function getOrCreateSpeakout($speakout_url, $speakout_id) {
-    $entry = $this->getExternalCampaign('speakout', $speakout_id);
+  /**
+   * @param $speakout_url
+   * @param $speakout_id
+   * @param string $external_system 'speakout' for campains, 'speakout_survey' for surveys
+   *
+   * @return array|null
+   */
+  public function getOrCreateSpeakout($speakout_url, $speakout_id, $external_system = 'speakout') {
+    $entry = $this->getExternalCampaign($external_system, $speakout_id);
     if (!$entry) {
       $urlments = parse_url($speakout_url);
       $speakout_domain = $urlments['host'];
-      $this->createSpeakoutCampaign($speakout_domain, $speakout_id);
-      $entry = $this->getExternalCampaign('speakout', $speakout_id);
+      $this->createSpeakoutCampaign($speakout_domain, $speakout_id, $external_system);
+      $entry = $this->getExternalCampaign($external_system, $speakout_id);
     }
     return $entry;
   }
@@ -119,15 +132,22 @@ class CRM_WeAct_CampaignCache {
       'donate' => 'Fundraising',
       'sign' => 'Petitions',
       'Trial campaign' => 'Trial campaign',
+      'poll' => 'Survey',
     ];
     $types = CRM_Core_PseudoConstant::get('CRM_Campaign_BAO_Campaign', 'campaign_type_id');
     $type = array_search($mapping[$categories[0]->name ?? $actionType], $types);
     if (empty($type)) {
-      throw new Exception("Unsupported action type");
+      throw new Exception("Unsupported action type '$actionType'");
     }
     return $type;
   }
 
+  /**
+   * Speakout is the historical campaign provider and thus the default external system,
+   * the external id pattern must be kept for backward compatibility.
+   * The distinction between the 2 Speakout instances is based on the id value (lesser or greater than 10000).
+   * Houdini ids have "cc_" prepended to them, so no need for further distinction.
+   */
   public function externalIdentifier($system, $id) {
     if ($system == 'houdini' || $system == 'speakout') {
       $external_id = $id;
@@ -137,14 +157,18 @@ class CRM_WeAct_CampaignCache {
     return $external_id;
   }
 
-  protected function createSpeakoutCampaign($speakout_domain, $speakout_id) {
-    $url = "https://$speakout_domain/api/v1/campaigns/$speakout_id";
+  protected function createSpeakoutCampaign($speakout_domain, $speakout_id, string $external_system = 'speakout') {
+    $url = $this->prepareSpeakoutAPIUrl($speakout_domain, $speakout_id, $external_system);
     $user = CIVICRM_SPEAKOUT_USERS[$speakout_domain];
     $externalCampaign = json_decode($this->getRemoteContent($url, $user));
 
     $locale = $externalCampaign->locale;
     $slug = ($externalCampaign->slug != '' ? $externalCampaign->slug : 'speakout_'.$externalCampaign->id);
-    $consentIds = array_keys(get_object_vars($externalCampaign->consents));
+    if (isset($externalCampaign->consents)) {
+      $consentIds = array_keys(get_object_vars($externalCampaign->consents));
+    } else {
+      $consentIds = [];
+    }
     if ($externalCampaign->thankyou_from_email) {
       $sender = "\"$externalCampaign->thankyou_from_name\" &lt;$externalCampaign->thankyou_from_email&gt;";
     } else {
@@ -152,18 +176,18 @@ class CRM_WeAct_CampaignCache {
     }
 
     $fields = $this->settings->customFields;
-
+    $externalIdentifier = $this->externalIdentifier($external_system, $speakout_id);
     $params = array(
       'sequential' => 1,
       'name' => $externalCampaign->internal_name,
       'title' => $externalCampaign->internal_name,
-      'description' => $externalCampaign->name,
-      'external_identifier' => $externalCampaign->id,
-      'campaign_type_id' => $this->campaignType('sign', $externalCampaign->categories ?? []),
+      'description' => $externalCampaign->name ?? $externalCampaign->title,
+      'external_identifier' => $externalIdentifier,
+      'campaign_type_id' => $this->prepareCampaignType($externalCampaign->categories ?? [], $external_system),
       'start_date' => date('Y-m-d H:i:s'),
       $fields['campaign_language'] => $locale,
       $fields['campaign_sender'] => $sender,
-      $fields['campaign_url'] => "https://$speakout_domain/campaigns/$slug",
+      $fields['campaign_url'] => $this->prepareSpeakoutCampaignUrl($speakout_domain, $slug, $external_system),
       $fields['campaign_slug'] => $slug,
       $fields['campaign_twitter_share'] => $externalCampaign->twitter_share_text,
       $fields['campaign_consent_ids'] => implode(',', $consentIds),
@@ -174,22 +198,25 @@ class CRM_WeAct_CampaignCache {
     );
     $create_result = civicrm_api3('Campaign', 'create', $params);
 
-    // This is done in a separate step even if the parent campaign is defined,
-    // to avoid circular-reference drama (getCampaignByExternalId may call this function)
-    if ($externalCampaign->parent_campaign_id) {
-      // Not the correct URL, but assuming that only the host part matters
-      $parent = $this->getOrCreateSpeakout($url, $externalCampaign->parent_campaign_id);
-      $parent_params = [
-        'id' => $create_result['values'][0]['id'],
-        'parent_id'=> $parent['id'],
-      ];
-    } else {
-      $parent_params = [
-        'id' => $create_result['values'][0]['id'],
-        'parent_id'=> $create_result['values'][0]['id'],
-      ];
+    //Surveys don't have a parent
+    if ($external_system != 'speakout_survey') {
+      // This is done in a separate step even if the parent campaign is defined,
+      // to avoid circular-reference drama (getCampaignByExternalId may call this function)
+      if ($externalCampaign->parent_campaign_id) {
+        // Not the correct URL, but assuming that only the host part matters
+        $parent = $this->getOrCreateSpeakout($url, $externalCampaign->parent_campaign_id, $external_system);
+        $parent_params = [
+          'id' => $create_result['values'][0]['id'],
+          'parent_id'=> $parent['id'],
+        ];
+      } else {
+        $parent_params = [
+          'id' => $create_result['values'][0]['id'],
+          'parent_id'=> $create_result['values'][0]['id'],
+        ];
+      }
+      civicrm_api3('Campaign', 'create', $parent_params);
     }
-    civicrm_api3('Campaign', 'create', $parent_params);
   }
 
   private function getRemoteContent($url, $user = NULL) {
@@ -203,5 +230,29 @@ class CRM_WeAct_CampaignCache {
     } else {
       throw new Exception('Speakout campaign is unavailable' . $url);
     }
+  }
+
+  protected function prepareSpeakoutAPIUrl(string $speakout_domain, string $speakout_id, string $external_system): string {
+    if ($external_system == 'speakout_survey') {
+      return sprintf("https://%s/api/v1/surveys/%s", $speakout_domain, $speakout_id);
+    }
+
+    return sprintf("https://%s/api/v1/campaigns/%s", $speakout_domain, $speakout_id);
+  }
+
+  protected function prepareSpeakoutCampaignUrl(string $speakout_domain, string $slug, string $external_system): string {
+    if ($external_system == 'speakout_survey') {
+      return sprintf("https://%s/surveys/%s", $speakout_domain, $slug);
+    }
+
+    return sprintf("https://%s/campaigns/%s", $speakout_domain, $slug);
+  }
+
+  protected function prepareCampaignType($categories = [], $external_system = 'speakout') {
+    if ($external_system == 'speakout_survey') {
+      return $this->campaignType('poll', $categories);
+    }
+
+    return $this->campaignType('sign', $categories);
   }
 }

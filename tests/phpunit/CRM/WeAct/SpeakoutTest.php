@@ -46,4 +46,22 @@ JSON;
 JSON;
   }
 
+  public static function surveyJSON($id) {
+    return <<<JSON
+    {
+      "id": $id,
+      "slug": "some-speakout-survey",
+      "internal_name": "2021-06-some-speakout-survey-EN",
+      "title": "Some Speakout Survey",
+      "language": "en",
+      "locale": "en_GB",
+      "twitter_share_text": null,
+      "thankyou_from_email": null,
+      "thankyou_from_name": null,
+      "thankyou_subject": null,
+      "thankyou_body": null
+    }
+JSON;
+  }
+
 }
